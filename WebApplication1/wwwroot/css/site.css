@@ -8,6 +8,321 @@ html {
   }
 }
 
+/* Action Buttons */
+.action-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 0.25rem;
+    text-decoration: none;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    color: white !important;
+}
+
+.reject-btn {
+    background-color: #dc3545;
+    color: white !important;
+}
+
+.delete-btn {
+    background-color: #6c757d;
+    color: white !important;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    opacity: 0.9;
+    text-decoration: none;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-badge.approved {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-badge.rejected {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-badge.pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+/* Reservation List Styles */
+.reservation-container {
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.reservation-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a237e;
+    margin: 0;
+}
+
+.create-reservation-btn {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.create-reservation-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.search-container {
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+/* Reservation Table Styles */
+.reservation-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.reservation-table th {
+    background: #1a237e;
+    color: white;
+    font-weight: 500;
+    padding: 1rem;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.reservation-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.reservation-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.reservation-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badge Styles */
+.status-badge.approved {
+    background-color: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Date and Time Formatting */
+.datetime-cell {
+    white-space: nowrap;
+    color: #666;
+}
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination-number {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin: 0 0.25rem;
+    background-color: #0d6efd;
+    color: white;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination-number:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+/* Admin Locker Requests Table Styling */
+.admin-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    margin: 20px 0;
+}
+
+.admin-table th {
+    background: #1a237e;
+    color: white;
+    font-weight: 500;
+    padding: 15px;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+.admin-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    color: #000; /* Ensuring default text is black */
+}
+
+.admin-table td a {
+    color: #0056b3; /* Making links a darker blue */
+    font-weight: 500;
+}
+
+.admin-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Style for cells with blue background */
+.admin-table td[style*="background-color: rgb(13, 110, 253)"],
+.admin-table td[style*="background-color: #0d6efd"] {
+    color: #000 !important; /* Force black text */
+    background-color: #e6f0ff !important; /* Lighter blue background */
+    font-weight: 500;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Action buttons */
+.action-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin: 0 4px;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.reject-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Navigation buttons */
+.nav-buttons {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+}
+
+.nav-btn {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.nav-btn:hover {
+    background-color: #0056b3;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }

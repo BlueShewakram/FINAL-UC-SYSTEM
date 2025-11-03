@@ -71,13 +71,15 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public IActionResult Approve(int id)
+        public IActionResult Approve(int id, bool approved)
         {
             var item = _db.Reservations.Find(id);
             if (item == null) return NotFound();
-            item.Approved = true;
+            
+            item.Approved = approved;
             item.ApprovalDate = DateTime.UtcNow;
             item.Approver = User?.Identity?.Name ?? "Admin";
+            
             _db.Reservations.Update(item);
             _db.SaveChanges();
             return RedirectToAction("AdminList");

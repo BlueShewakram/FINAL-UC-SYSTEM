@@ -4,12 +4,20 @@
 }
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="fw-bold">Reservation List</h1>
-    </div>
+    <div class="reservation-container">
+        <div class="reservation-header">
+            <h1 class="reservation-title">Reservation List</h1>
+            <a href="@Url.Action("Add", "Reservation")" class="create-reservation-btn">
+                <i class="fas fa-plus"></i> Create Reservation
+            </a>
+        </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover text-white">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Search by organization, activity, speaker, or date..." />
+        </div>
+
+        <div class="table-responsive">
+            <table class="reservation-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -43,7 +51,7 @@
                             @{
                                 var status = r.Approved == null ? "Pending" : r.Approved == true ? "Approved" : "Rejected";
                             }
-                            <span class="@(status == "Approved" ? "text-success" : status == "Rejected" ? "text-danger" : "text-warning")">
+                            <span class="status-badge @(status.ToLower())">
                                 @status
                             </span>
                             @if (!string.IsNullOrEmpty(r.Approver))
@@ -52,19 +60,25 @@
                             }
                         </td>
                         <td style="white-space:nowrap;">
-                            @if (r.Approved != true)
+                            @if (r.Approved == null)
                             {
                                 <form asp-action="Approve" method="post" style="display:inline">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@r.Id" />
-                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                    <input type="hidden" name="approved" value="true" />
+                                    <button type="submit" class="action-btn approve-btn">Approve</button>
+                                </form>
+                                <form asp-action="Approve" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <input type="hidden" name="approved" value="false" />
+                                    <button type="submit" class="action-btn reject-btn">Reject</button>
                                 </form>
                             }
-
                             <form asp-action="Delete" method="post" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this reservation?');">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                <button type="submit" class="action-btn delete-btn">Delete</button>
                             </form>
                         </td>
                     </tr>
