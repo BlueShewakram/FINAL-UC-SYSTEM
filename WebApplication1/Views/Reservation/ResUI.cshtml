@@ -6,7 +6,7 @@
 <div class="reservation-content-wrapper">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="fw-bold">Reservation List</h1>
-        <a asp-controller="Reservation" asp-action="Add" class="btn btn-primary">
+        <a asp-controller="Reservation" asp-action="Add" class="btn btn-info">
             + Create Reservation
         </a>
     </div>
@@ -57,7 +57,7 @@
                         <td>@reservation.NatureOfActivity</td>
                         <td>@reservation.SourceOfFunds</td>
                         <td>
-                            <span class="badge bg-success">Approved</span>
+                            <span class="badge bg-success">Pending</span>
                         </td>
                         
                     </tr>
@@ -92,6 +92,11 @@
             }
         </ul>
     </nav>
+    <div>
+        <a asp-controller="Reservation" asp-action="Add" class="btn btn-outline-secondary text-white">
+            <i class="fas fa-arrow-left me-2"></i>Back to form
+        </a>
+    </div>
 </div>
 
 <style>

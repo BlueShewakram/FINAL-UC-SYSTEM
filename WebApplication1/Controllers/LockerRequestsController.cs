@@ -167,6 +167,15 @@ namespace WebApplication1.Controllers
 
             await _context.SaveChangesAsync();
 
+            // If this was an AJAX request, return the admin partial so the panel can update in-place
+            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                int pageSize = 5;
+                var query = _context.LockerRequests.OrderByDescending(x => x.CreatedAt);
+                var list = query.Take(pageSize).ToList();
+                return PartialView("Admin", list);
+            }
+
             return RedirectToAction(nameof(Admin));
         }
 
@@ -190,6 +199,14 @@ namespace WebApplication1.Controllers
 
             _context.LockerRequests.Remove(request);
             await _context.SaveChangesAsync();
+
+            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                int pageSize = 5;
+                var query = _context.LockerRequests.OrderByDescending(x => x.CreatedAt);
+                var list = query.Take(pageSize).ToList();
+                return PartialView("Admin", list);
+            }
 
             return RedirectToAction(nameof(Admin));
         }

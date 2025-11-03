@@ -70,21 +70,21 @@
                                                 }
                                             </td>
                                             <td style="white-space:nowrap;">
-                                                <form asp-action="Approve" method="post" style="display:inline">
+                                                <form class="admin-action-form" asp-action="Approve" method="post" style="display:inline">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@r.Id" />
                                                     <input type="hidden" name="approve" value="true" />
                                                     <button type="submit" class="btn btn-success btn-sm">Approve</button>
                                                 </form>
 
-                                                <form asp-action="Approve" method="post" style="display:inline">
+                                                <form class="admin-action-form" asp-action="Approve" method="post" style="display:inline">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@r.Id" />
                                                     <input type="hidden" name="approve" value="false" />
                                                     <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                                                 </form>
 
-                                                <form asp-action="Delete" method="post" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this request?');">
+                                                <form class="admin-action-form" asp-action="Delete" method="post" style="display:inline" data-confirm="Are you sure you want to delete this request?">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@r.Id" />
                                                     <button type="submit" class="btn btn-secondary btn-sm">Delete</button>
@@ -145,7 +145,8 @@
                     const panels = [
                         { type: 'html', content: originalHtml },
                         { type: 'url', url: '/Reservation/AdminList' },
-                        { type: 'url', url: '/Student/AdminList' }
+                        { type: 'url', url: '/Student/AdminList' },
+                        { type: 'url', url: '/GatePass/AdminList' }
                     ];
 
                     // intercept pagination links inside injected panels and load via AJAX
@@ -158,6 +159,26 @@
                             .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
                             .then(html => setPanelHtml(html))
                             .catch(err => setPanelHtml('<div class="alert alert-danger">Error loading page: ' + err.message + '</div>'));
+                    });
+
+                    // intercept admin action form submissions (Approve/Reject/Delete) and perform via AJAX
+                    container.addEventListener('submit', function(e){
+                        const form = e.target.closest && e.target.closest('form.admin-action-form');
+                        if (!form) return;
+                        e.preventDefault();
+
+                        // If a data-confirm attribute exists, show confirmation
+                        const confirmMsg = form.getAttribute('data-confirm');
+                        if (confirmMsg && !window.confirm(confirmMsg)) return;
+
+                        const action = form.getAttribute('action') || window.location.href;
+                        const method = (form.getAttribute('method') || 'POST').toUpperCase();
+                        const formData = new FormData(form);
+
+                        fetch(action, { method, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: formData })
+                            .then(r => { if (!r.ok) throw new Error(r.statusText || r.status); return r.text(); })
+                            .then(html => setPanelHtml(html))
+                            .catch(err => alert('Action failed: ' + err.message));
                     });
 
                     let idx = 0; // currently showing locker requests (index 0)

@@ -1,0 +1,155 @@
+﻿@model WebApplication1.Models.GatePassModel
+@{
+    ViewData["Title"] = "Create Gatepass";
+}
+
+<div class="reservation-form-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: white">Create Gate Pass</h2>
+        <p style="color: white">Please fill in the gate pass details below</p>
+    </div>
+
+    <form id="gatepassForm" method="post" asp-action="Create" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <div class="card shadow-sm">
+            <div class="card-body bg-white">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="form-floating mb-3">
+                            <input asp-for="StudentIdNo" class="form-control dark-text" placeholder="Student ID" required />
+                            <label asp-for="StudentIdNo" class="dark-label">Student ID</label>
+                            <span asp-validation-for="StudentIdNo" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="form-floating mb-3">
+                            <input asp-for="StudentName" class="form-control dark-text" placeholder="Student Name" required />
+                            <label asp-for="StudentName" class="dark-label">Student Name</label>
+                            <span asp-validation-for="StudentName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="StudentCourse" class="form-control dark-text" placeholder="Course" required />
+                            <label asp-for="StudentCourse" class="dark-label">Course</label>
+                            <span asp-validation-for="StudentCourse" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="StudentYear" class="form-control dark-text" placeholder="Year" required />
+                            <label asp-for="StudentYear" class="dark-label">Year</label>
+                            <span asp-validation-for="StudentYear" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="VehiclePlateNo" class="form-control dark-text" placeholder="Plate No" required />
+                            <label asp-for="VehiclePlateNo" class="dark-label">Plate No</label>
+                            <span asp-validation-for="VehiclePlateNo" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="VehicleModel" class="form-control dark-text" placeholder="Model" required />
+                            <label asp-for="VehicleModel" class="dark-label">Model</label>
+                            <span asp-validation-for="VehicleModel" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="VehicleMake" class="form-control dark-text" placeholder="Make" required />
+                            <label asp-for="VehicleMake" class="dark-label">Make</label>
+                            <span asp-validation-for="VehicleMake" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="VehicleType" class="form-control dark-text" placeholder="Type" required />
+                            <label asp-for="VehicleType" class="dark-label">Type</label>
+                            <span asp-validation-for="VehicleType" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label asp-for="OrDocumentPath" class="form-label">OR Document</label>
+                            <input asp-for="OrDocumentPath" type="file" class="form-control" />
+                            <span asp-validation-for="OrDocumentPath" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label asp-for="CrDocumentPath" class="form-label">CR Document</label>
+                            <input asp-for="CrDocumentPath" type="file" class="form-control" />
+                            <span asp-validation-for="CrDocumentPath" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary text-dark">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Create Gatepass
+                    </button>
+                    <a asp-controller="GatePass" asp-action="List" class="btn btn-primary">
+                        View Listing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+    
+</div>
+
+<style>
+    /* reuse the reservation form styles for a consistent look */
+    .reservation-form-wrapper {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .form-header h2 {
+        color: #000;
+        font-weight: 600;
+    }
+
+    .card { border: 1px solid #dee2e6; border-radius: 10px; }
+    .form-floating > .form-control, .form-floating > .form-select { height: calc(3.5rem + 2px); line-height: 1.25; color: #000 !important; background-color: #fff !important; }
+    .dark-text { color: #000 !important; }
+    .dark-label { color: #495057 !important; }
+    .btn-primary { background-color: #1a237e; border-color: #1a237e; color: #fff !important; }
+</style>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) { event.preventDefault(); event.stopPropagation(); }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+
+        document.querySelectorAll('.form-control, .form-select').forEach(function(element) {
+            element.addEventListener('input', function() { this.style.color = '#000'; });
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

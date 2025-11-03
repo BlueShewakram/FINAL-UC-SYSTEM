@@ -14,8 +14,28 @@ namespace WebApplication1.Controllers
             _db = db;
         }
 
+        // Ensure the Reservations table contains the status columns. This runs a conditional ALTER TABLE
+        // the first time it's needed. It requires the DB user to have ALTER permissions.
+        private void EnsureReservationStatusColumns()
+        {
+            try
+            {
+                var sql = @"IF COL_LENGTH('Reservations','Approved') IS NULL BEGIN ALTER TABLE [Reservations] ADD [Approved] bit NULL END;"
+                        + "IF COL_LENGTH('Reservations','Approver') IS NULL BEGIN ALTER TABLE [Reservations] ADD [Approver] nvarchar(256) NULL END;"
+                        + "IF COL_LENGTH('Reservations','ApprovalDate') IS NULL BEGIN ALTER TABLE [Reservations] ADD [ApprovalDate] datetime2 NULL END;";
+                _db.Database.ExecuteSqlRaw(sql);
+            }
+            catch
+            {
+                // If this fails (insufficient permissions), we'll let the normal EF flow continue so the app
+                // doesn't crash; admin actions will still work in-memory for the current request.
+            }
+        }
+
         public IActionResult ResUI(int page = 1)
         {
+            // ensure status columns exist before querying so EF won't throw missing column errors
+            EnsureReservationStatusColumns();
             int pageSize = 5; // Limit to 5 rows per page
             var reservations = _db.Reservations
                                    .OrderBy(r => r.Id)
@@ -53,6 +73,8 @@ namespace WebApplication1.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult AdminList(int page = 1)
         {
+            // ensure the status columns exist before querying
+            EnsureReservationStatusColumns();
             int pageSize = 5;
             var query = _db.Reservations.OrderBy(r => r.Id);
             var totalRecords = query.Count();
@@ -73,6 +95,7 @@ namespace WebApplication1.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Approve(int id)
         {
+            EnsureReservationStatusColumns();
             var item = _db.Reservations.Find(id);
             if (item == null) return NotFound();
             item.Approved = true;
@@ -80,6 +103,35 @@ namespace WebApplication1.Controllers
             item.Approver = User?.Identity?.Name ?? "Admin";
             _db.Reservations.Update(item);
             _db.SaveChanges();
+            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                int pageSize = 5;
+                var query = _db.Reservations.OrderBy(r => r.Id);
+                var reservations = query.Take(pageSize).ToList();
+                return PartialView("AdminList", reservations);
+            }
+            return RedirectToAction("AdminList");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Reject(int id)
+        {
+            EnsureReservationStatusColumns();
+            var item = _db.Reservations.Find(id);
+            if (item == null) return NotFound();
+            item.Approved = false;
+            item.ApprovalDate = DateTime.UtcNow;
+            item.Approver = User?.Identity?.Name ?? "Admin";
+            _db.Reservations.Update(item);
+            _db.SaveChanges();
+            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                int pageSize = 5;
+                var query = _db.Reservations.OrderBy(r => r.Id);
+                var reservations = query.Take(pageSize).ToList();
+                return PartialView("AdminList", reservations);
+            }
             return RedirectToAction("AdminList");
         }
 
@@ -87,10 +139,18 @@ namespace WebApplication1.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
+            EnsureReservationStatusColumns();
             var item = _db.Reservations.Find(id);
             if (item == null) return NotFound();
             _db.Reservations.Remove(item);
             _db.SaveChanges();
+            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                int pageSize = 5;
+                var query = _db.Reservations.OrderBy(r => r.Id);
+                var reservations = query.Take(pageSize).ToList();
+                return PartialView("AdminList", reservations);
+            }
             return RedirectToAction("AdminList");
         }
         

@@ -23,7 +23,7 @@
         </div>
         <h2 class="service-title">Reservation System</h2>
         <p class="service-description">Book study rooms, schedule faculty appointments, and manage campus reservations.</p>
-        <a asp-controller="Reservation" asp-action="ResUI" class="service-button">Make Reservation</a>
+        <a asp-controller="Reservation" asp-action="Add" class="service-button">Make Reservation</a>
     </div>
 
     <div class="service-card">
@@ -33,5 +33,15 @@
         <h2 class="service-title">Locker Selection</h2>
         <p class="service-description">Select and manage your locker, view availability, and request locker changes.</p>
         <a asp-controller="LockerRequests" asp-action="Create" class="service-button">Select Locker</a>
+    </div>
+    <div class="service-card">
+        <div class="service-icon">
+            <i class="fas fa-shield-alt" style="font-size: 24px;"></i>
+        </div>
+        <h2 class="service-title">Gate Pass Management</h2>
+        <p class="service-description">
+            Monitor and request access for campus entry or exit. Submit, track, and review your approved or pending gate pass requests.
+        </p>
+        <a asp-controller="GatePass" asp-action="Index" class="service-button" style="color: white">Request Gate Pass</a>
     </div>
 </div>
