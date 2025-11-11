@@ -171,9 +171,20 @@
                 const method = (form.getAttribute('method') || 'POST').toUpperCase();
                 const formData = new FormData(form);
 
-                fetch(action, { method, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: formData })
-                    .then(r => { if (!r.ok) throw new Error(r.statusText || r.status); return r.text(); })
-                    .then(html => setPanelHtml(html))
+                fetch(action, { method, credentials: 'same-origin', body: formData, redirect: 'follow' })
+                    .then(r => {
+                        if (!r.ok) throw new Error(r.statusText || r.status);
+                        // After any action (Approve/Reject/Delete), reload the current panel
+                        if (action.includes('Delete') || action.includes('Approve') || action.includes('Reject')) {
+                            // Reload the current panel
+                            loadPanel(panels[idx]);
+                        } else {
+                            return r.text();
+                        }
+                    })
+                    .then(html => {
+                        if (html) setPanelHtml(html);
+                    })
                     .catch(err => alert('Action failed: ' + err.message));
             });
 

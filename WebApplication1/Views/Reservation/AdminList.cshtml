@@ -3,13 +3,223 @@
     ViewData["Title"] = "Reservation Admin";
 }
 
+<style>
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .reservation-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .reservation-header {
+        background: white;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .reservation-title {
+        margin: 0;
+        color: #1e3c72;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .search-container {
+        padding: 1.5rem 2rem;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #1e3c72;
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+    }
+
+    .table-responsive {
+        background: white;
+        overflow-x: auto;
+    }
+
+    .reservation-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .reservation-table thead {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+    }
+
+    .reservation-table th {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .reservation-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        font-size: 0.95rem;
+        vertical-align: middle;
+    }
+
+    .reservation-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .reservation-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Action Buttons */
+    .btn {
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .btn-success:hover {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .btn-warning:hover {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-danger:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        margin: 1.5rem 0;
+        padding: 0 2rem;
+        justify-content: center;
+    }
+
+    .page-item {
+        display: inline-block;
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 0.75rem;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #334155;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .page-link:hover {
+        background: #1e3c72;
+        color: white;
+        border-color: #1e3c72;
+    }
+
+    .page-item.active .page-link {
+        background: #1e3c72;
+        color: white;
+        border-color: #1e3c72;
+    }
+
+    .text-muted {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+
+    @@media (max-width: 768px) {
+        .reservation-table {
+            font-size: 0.85rem;
+        }
+
+        .reservation-table th,
+        .reservation-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+</style>
+
 <div class="container py-4">
     <div class="reservation-container">
         <div class="reservation-header">
             <h1 class="reservation-title">Reservation List</h1>
-            <a href="@Url.Action("Add", "Reservation")" class="create-reservation-btn">
-                <i class="fas fa-plus"></i> Create Reservation
-            </a>
         </div>
 
         <div class="search-container">
@@ -63,20 +273,21 @@
                             @* Show Approve/Reject when Pending; otherwise show single action(s) *@
                             @if (r.Approved == null)
                             {
-                                <form class="admin-action-form" asp-action="Approve" method="post" style="display:inline; margin-right:4px;">
+                                <form class="admin-action-form" asp-action="Approve" asp-controller="Reservation" method="post" style="display:inline; margin-right:4px;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@r.Id" />
+                                    <input type="hidden" name="approved" value="true" />
                                     <button type="submit" class="btn btn-success btn-sm">Approve</button>
                                 </form>
 
-                                <form class="admin-action-form" asp-action="Reject" method="post" style="display:inline; margin-right:4px;">
+                                <form class="admin-action-form" asp-action="Reject" asp-controller="Reservation" method="post" style="display:inline; margin-right:4px;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@r.Id" />
                                     <button type="submit" class="btn btn-warning btn-sm">Reject</button>
                                 </form>
                             }
 
-                            <form asp-action="Delete" method="post" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this reservation?');">
+                            <form class="admin-action-form" asp-action="Delete" asp-controller="Reservation" method="post" style="display:inline" data-confirm="Are you sure you want to delete this reservation?">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@r.Id" />
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>

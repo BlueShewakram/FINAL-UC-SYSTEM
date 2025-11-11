@@ -110,21 +110,28 @@ namespace WebApplication1.Controllers
         {
             EnsureReservationStatusColumns();
             var item = _db.Reservations.Find(id);
-            if (item == null) return NotFound();
+            if (item == null) 
+            {
+                TempData["error"] = "Reservation not found";
+                return RedirectToAction("AdminList");
+            }
             
             item.Approved = approved;
             item.ApprovalDate = DateTime.UtcNow;
             item.Approver = User?.Identity?.Name ?? "Admin";
             
-            _db.Reservations.Update(item);
-            _db.SaveChanges();
-            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            try
             {
-                int pageSize = 5;
-                var query = _db.Reservations.OrderBy(r => r.Id);
-                var reservations = query.Take(pageSize).ToList();
-                return PartialView("AdminList", reservations);
+                _db.Reservations.Update(item);
+                _db.SaveChanges();
+                
+                TempData["success"] = approved ? "Reservation approved successfully" : "Reservation rejected successfully";
             }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Error updating reservation: " + ex.Message;
+            }
+            
             return RedirectToAction("AdminList");
         }
 
@@ -134,19 +141,28 @@ namespace WebApplication1.Controllers
         {
             EnsureReservationStatusColumns();
             var item = _db.Reservations.Find(id);
-            if (item == null) return NotFound();
+            if (item == null) 
+            {
+                TempData["error"] = "Reservation not found";
+                return RedirectToAction("AdminList");
+            }
+            
             item.Approved = false;
             item.ApprovalDate = DateTime.UtcNow;
             item.Approver = User?.Identity?.Name ?? "Admin";
-            _db.Reservations.Update(item);
-            _db.SaveChanges();
-            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            
+            try
             {
-                int pageSize = 5;
-                var query = _db.Reservations.OrderBy(r => r.Id);
-                var reservations = query.Take(pageSize).ToList();
-                return PartialView("AdminList", reservations);
+                _db.Reservations.Update(item);
+                _db.SaveChanges();
+                
+                TempData["success"] = "Reservation rejected successfully";
             }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Error rejecting reservation: " + ex.Message;
+            }
+            
             return RedirectToAction("AdminList");
         }
 
@@ -156,16 +172,24 @@ namespace WebApplication1.Controllers
         {
             EnsureReservationStatusColumns();
             var item = _db.Reservations.Find(id);
-            if (item == null) return NotFound();
-            _db.Reservations.Remove(item);
-            _db.SaveChanges();
-            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            if (item == null) 
             {
-                int pageSize = 5;
-                var query = _db.Reservations.OrderBy(r => r.Id);
-                var reservations = query.Take(pageSize).ToList();
-                return PartialView("AdminList", reservations);
+                TempData["error"] = "Reservation not found";
+                return RedirectToAction("AdminList");
             }
+            
+            try
+            {
+                _db.Reservations.Remove(item);
+                _db.SaveChanges();
+                
+                TempData["success"] = "Reservation deleted successfully";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Error deleting reservation: " + ex.Message;
+            }
+            
             return RedirectToAction("AdminList");
         }
         
