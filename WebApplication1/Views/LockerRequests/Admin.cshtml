@@ -3,38 +3,44 @@
     ViewData["Title"] = "Admin - Locker Requests";
 }
 
-<div class="container py-4">
-    
+<div class="admin-content-wrapper">
+    <div class="nav-header-section">
+        <button id="prevPanelBtn" class="nav-btn">
+            <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <div class="nav-title">
+            <h2><i class="fas fa-clipboard-list"></i> View More Forms</h2>
+        </div>
+        <button id="nextPanelBtn" class="nav-btn">
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
 
-            <div class="nav-buttons">
-                <button id="prevPanelBtn" class="nav-btn">Previous</button>
-                <h2 class="flex-grow-1 text-center">View More Forms</h2>
-                <button id="nextPanelBtn" class="nav-btn">Next</button>
+    <!-- container where other admin tables (LockerRequests / Reservation / Student) will be loaded -->
+    <div id="adminPanelsContainer" class="mt-3">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-title">
+                    <i class="fas fa-key"></i> Admin - Locker Requests
+                </h2>
             </div>
-
-            <!-- container where other admin tables (LockerRequests / Reservation / Student) will be loaded -->
-            <div id="adminPanelsContainer" class="mt-3">
-                <div class="card shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2 class="mb-0" style="color: #1a237e">Admin - Locker Requests</h2>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>ID</th>
-                                        <th>Locker</th>
-                                        <th>Semester</th>
-                                        <th>Contact</th>
-                                        <th>File</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag"></i> #</th>
+                                <th><i class="fas fa-user"></i> Name</th>
+                                <th><i class="fas fa-id-card"></i> ID</th>
+                                <th><i class="fas fa-lock"></i> Locker</th>
+                                <th><i class="fas fa-calendar-alt"></i> Semester</th>
+                                <th><i class="fas fa-phone"></i> Contact</th>
+                                <th><i class="fas fa-file-alt"></i> File</th>
+                                <th><i class="fas fa-info-circle"></i> Status</th>
+                                <th><i class="fas fa-cog"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                                     @{int counter = 1;}
                                     @foreach (var r in Model)
                                     {
@@ -56,7 +62,7 @@
                                                     var status = r.Approved == null ? "Pending" : r.Approved == true ? "Approved" : "Rejected";
                                                     var approver = !string.IsNullOrEmpty(r.Approver) && r.Approver != "Pending" ? $"by {r.Approver}" : "";
                                                 }
-                                                <span class="status-badge @(status == "Approved" ? "status-approved" : status == "Rejected" ? "status-rejected" : "status-pending")">
+                                                <span class="status-badge @(status == "Approved" ? "approved" : status == "Rejected" ? "rejected" : "pending")">
                                                     @status
                                                 </span>
                                                 @if (!string.IsNullOrEmpty(approver))
@@ -115,123 +121,340 @@
                             </nav>
 
                         </div> <!-- /.table-responsive -->
-                    </div> <!-- /.card-body -->
-                </div> <!-- /.card -->
-            </div>
+                    </div> <!-- /.table-card -->
+                </div> <!-- /.admin-card -->
+            </div> <!-- /#adminPanelsContainer -->
 
-        </div> <!-- /.container -->
+</div> <!-- /.admin-content-wrapper -->
 
-        <style>
-            /* simple fade animation for panel transitions */
-            .fade-out { opacity: 0; transition: opacity 300ms ease; }
-            .fade-in { opacity: 1; transition: opacity 300ms ease; }
-        </style>
+@section Scripts {
+    <script>
+        (function(){
+            const prevBtn = document.getElementById('prevPanelBtn');
+            const nextBtn = document.getElementById('nextPanelBtn');
+            const container = document.getElementById('adminPanelsContainer');
 
-        @section Scripts {
-            <script>
-                (function(){
-                    const prevBtn = document.getElementById('prevPanelBtn');
-                    const nextBtn = document.getElementById('nextPanelBtn');
-                    const container = document.getElementById('adminPanelsContainer');
+            // capture the current locker requests card HTML so we can restore it
+            const adminCard = container.querySelector('.admin-card');
+            const originalHtml = adminCard ? adminCard.outerHTML : '';
 
-                    // capture the current locker requests card HTML so we can restore it
-                    const cardBody = container.querySelector('.card');
-                    const originalHtml = cardBody ? cardBody.outerHTML : '';
+            const panels = [
+                { type: 'html', content: originalHtml },
+                { type: 'url', url: '/Reservation/AdminList' },
+                { type: 'url', url: '/Student/AdminList' },
+                { type: 'url', url: '/GatePass/AdminList' }
+            ];
 
-                    const panels = [
-                        { type: 'html', content: originalHtml },
-                        { type: 'url', url: '/Reservation/AdminList' },
-                        { type: 'url', url: '/Student/AdminList' },
-                        { type: 'url', url: '/GatePass/AdminList' }
-                    ];
+            // intercept pagination links inside injected panels and load via AJAX
+            container.addEventListener('click', function(e){
+                const a = e.target.closest && e.target.closest('a.admin-page-link');
+                if (!a) return;
+                e.preventDefault();
+                const url = a.getAttribute('href');
+                fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+                    .then(html => setPanelHtml(html))
+                    .catch(err => setPanelHtml('<div class="alert alert-danger">Error loading page: ' + err.message + '</div>'));
+            });
 
-                    // intercept pagination links inside injected panels and load via AJAX
-                    container.addEventListener('click', function(e){
-                        const a = e.target.closest && e.target.closest('a.admin-page-link');
-                        if (!a) return;
-                        e.preventDefault();
-                        const url = a.getAttribute('href');
-                        fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                            .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-                            .then(html => setPanelHtml(html))
-                            .catch(err => setPanelHtml('<div class="alert alert-danger">Error loading page: ' + err.message + '</div>'));
-                    });
+            // intercept admin action form submissions (Approve/Reject/Delete) and perform via AJAX
+            container.addEventListener('submit', function(e){
+                const form = e.target.closest && e.target.closest('form.admin-action-form');
+                if (!form) return;
+                e.preventDefault();
 
-                    // intercept admin action form submissions (Approve/Reject/Delete) and perform via AJAX
-                    container.addEventListener('submit', function(e){
-                        const form = e.target.closest && e.target.closest('form.admin-action-form');
-                        if (!form) return;
-                        e.preventDefault();
+                // If a data-confirm attribute exists, show confirmation
+                const confirmMsg = form.getAttribute('data-confirm');
+                if (confirmMsg && !window.confirm(confirmMsg)) return;
 
-                        // If a data-confirm attribute exists, show confirmation
-                        const confirmMsg = form.getAttribute('data-confirm');
-                        if (confirmMsg && !window.confirm(confirmMsg)) return;
+                const action = form.getAttribute('action') || window.location.href;
+                const method = (form.getAttribute('method') || 'POST').toUpperCase();
+                const formData = new FormData(form);
 
-                        const action = form.getAttribute('action') || window.location.href;
-                        const method = (form.getAttribute('method') || 'POST').toUpperCase();
-                        const formData = new FormData(form);
+                fetch(action, { method, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: formData })
+                    .then(r => { if (!r.ok) throw new Error(r.statusText || r.status); return r.text(); })
+                    .then(html => setPanelHtml(html))
+                    .catch(err => alert('Action failed: ' + err.message));
+            });
 
-                        fetch(action, { method, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: formData })
-                            .then(r => { if (!r.ok) throw new Error(r.statusText || r.status); return r.text(); })
-                            .then(html => setPanelHtml(html))
-                            .catch(err => alert('Action failed: ' + err.message));
-                    });
+            let idx = 0; // currently showing locker requests (index 0)
 
-                    let idx = 0; // currently showing locker requests (index 0)
-
-                    function setPanelHtml(html){
-                        // fade out
-                        container.classList.add('fade-out');
-                        setTimeout(() => {
-                            try {
-                                // Parse the returned HTML and try to extract only the inner admin panel
-                                var parser = new DOMParser();
-                                var doc = parser.parseFromString(html, 'text/html');
-                                var extracted = doc.getElementById('adminPanelsContainer');
-                                if (extracted) {
-                                    // Insert only the inner content to avoid duplicating outer controls
-                                    container.innerHTML = extracted.innerHTML;
-                                } else {
-                                    // Fallback: server returned a fragment already
-                                    container.innerHTML = html;
-                                }
-                            } catch (e) {
-                                // If parsing fails, fallback to raw HTML
-                                container.innerHTML = html;
-                            }
-
-                            container.classList.remove('fade-out');
-                            container.classList.add('fade-in');
-                            // remove fade-in class after animation so it can be reused
-                            setTimeout(() => container.classList.remove('fade-in'), 350);
-                        }, 300);
+            function setPanelHtml(html){
+                // fade out
+                container.classList.add('fade-out');
+                setTimeout(() => {
+                    try {
+                        // Parse the returned HTML and try to extract only the inner admin panel
+                        var parser = new DOMParser();
+                        var doc = parser.parseFromString(html, 'text/html');
+                        var extracted = doc.getElementById('adminPanelsContainer');
+                        if (extracted) {
+                            // Insert only the inner content to avoid duplicating outer controls
+                            container.innerHTML = extracted.innerHTML;
+                        } else {
+                            // Fallback: server returned a fragment already
+                            container.innerHTML = html;
+                        }
+                    } catch (e) {
+                        // If parsing fails, fallback to raw HTML
+                        container.innerHTML = html;
                     }
 
-                    async function loadPanel(panel){
-                        if (panel.type === 'html'){
-                            setPanelHtml(panel.content);
-                            return;
-                        }
-                        try{
-                            const res = await fetch(panel.url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                            if (!res.ok) throw new Error('Failed to load: ' + res.status);
-                            const text = await res.text();
-                            setPanelHtml(text);
-                        } catch (err){
-                            setPanelHtml('<div class="alert alert-danger">Error loading panel: ' + err.message + '</div>');
-                        }
-                    }
+                    container.classList.remove('fade-out');
+                    container.classList.add('fade-in');
+                    // remove fade-in class after animation so it can be reused
+                    setTimeout(() => container.classList.remove('fade-in'), 350);
+                }, 300);
+            }
 
-                    nextBtn.addEventListener('click', function(){
-                        idx = (idx + 1) % panels.length;
-                        loadPanel(panels[idx]);
-                    });
+            async function loadPanel(panel){
+                if (panel.type === 'html'){
+                    setPanelHtml(panel.content);
+                    return;
+                }
+                try{
+                    const res = await fetch(panel.url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!res.ok) throw new Error('Failed to load: ' + res.status);
+                    const text = await res.text();
+                    setPanelHtml(text);
+                } catch (err){
+                    setPanelHtml('<div class="alert alert-danger">Error loading panel: ' + err.message + '</div>');
+                }
+            }
 
-                    prevBtn.addEventListener('click', function(){
-                        idx = (idx - 1 + panels.length) % panels.length;
-                        loadPanel(panels[idx]);
-                    });
+            nextBtn.addEventListener('click', function(){
+                idx = (idx + 1) % panels.length;
+                loadPanel(panels[idx]);
+            });
 
-                })();
-            </script>
+            prevBtn.addEventListener('click', function(){
+                idx = (idx - 1 + panels.length) % panels.length;
+                loadPanel(panels[idx]);
+            });
+
+        })();
+    </script>
+}
+
+<style>
+    /* Main Container */
+    .admin-content-wrapper {
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    /* Navigation Header */
+    .nav-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        gap: 2rem;
+    }
+
+    .nav-title {
+        flex: 1;
+        text-align: center;
+    }
+
+    .nav-title h2 {
+        margin: 0;
+        color: #1a237e;
+        font-size: 2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .nav-title h2 i {
+        color: #667eea;
+    }
+
+    .nav-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .nav-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    /* Admin Card */
+    .admin-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .admin-card-header {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-bottom: 3px solid #764ba2;
+    }
+
+    .admin-title {
+        margin: 0;
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    /* Table Card */
+    .table-card {
+        background: white;
+    }
+
+    /* Admin Table Styling */
+    .admin-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+    }
+
+    .admin-table thead tr {
+        background: linear-gradient(135deg, #1a237e 0%, #2c3e82 100%);
+        color: white;
+    }
+
+    .admin-table th {
+        padding: 1.2rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        white-space: nowrap;
+        font-size: 0.95rem;
+    }
+
+    .admin-table th i {
+        margin-right: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .admin-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        color: #333;
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    .admin-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .admin-table tbody tr:hover {
+        background-color: #f8f9ff;
+        transform: scale(1.005);
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .status-badge.pending {
+        background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+        color: #000;
+    }
+
+    .status-badge.approved {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+
+    .status-badge.rejected {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: white;
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .approve-btn {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+
+    .reject-btn {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: white;
+    }
+
+    .delete-btn {
+        background: linear-gradient(135deg, #757f9a 0%, #d7dde8 100%);
+        color: #333;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Animations */
+    .fade-out {
+        opacity: 0;
+        transition: opacity 300ms ease;
+    }
+
+    .fade-in {
+        opacity: 1;
+        transition: opacity 300ms ease;
+    }
+
+    @@media (max-width: 768px) {
+        .nav-header-section {
+            flex-direction: column;
+            gap: 1rem;
         }
+
+        .admin-content-wrapper {
+            padding: 1rem;
+        }
+
+        .admin-table {
+            font-size: 0.85rem;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+</style>

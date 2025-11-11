@@ -46,14 +46,30 @@ namespace MyWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Student obj)
         {
-            if (ModelState.IsValid)
+            // Debug: Check what's being received
+            if (!ModelState.IsValid)
+            {
+                // Show validation errors
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    TempData["error"] = error.ErrorMessage;
+                }
+                return View(obj);
+            }
+            
+            try
             {
                 _db.Students.Add(obj);
                 _db.SaveChanges();
                 TempData["success"] = "Student created successfully";
                 return RedirectToAction("Index");
             }
-            return View(obj);
+            catch (Exception ex)
+            {
+                TempData["error"] = "Error creating student: " + ex.Message;
+                return View(obj);
+            }
         }
         //GET
         [HttpGet]

@@ -11,12 +11,31 @@
     </div>
 
     <form method="post" asp-action="Create" class="needs-validation" novalidate>
+        @Html.AntiForgeryToken()
         <div class="card shadow-sm">
             <div class="card-body bg-white">
                 <div class="row g-4">
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="Firstname" class="form-control dark-text" placeholder="First Name" required />
+                            <input asp-for="SchoolIdNumber" class="form-control dark-text" placeholder="School ID Number" 
+                                   required pattern="\d{8}" maxlength="8" title="Must be exactly 8 digits" />
+                            <label asp-for="SchoolIdNumber" class="dark-label">School ID Number</label>
+                            <span asp-validation-for="SchoolIdNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Username" class="form-control dark-text" placeholder="Username" required />
+                            <label asp-for="Username" class="dark-label">Username</label>
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Firstname" class="form-control dark-text" placeholder="First Name" 
+                                   required pattern="[a-zA-Z\s]+" title="First name must contain only letters" />
                             <label asp-for="Firstname" class="dark-label">First Name</label>
                             <span asp-validation-for="Firstname" class="text-danger"></span>
                         </div>
@@ -24,23 +43,34 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="Lastname" class="form-control dark-text" placeholder="Last Name" required />
+                            <input asp-for="Lastname" class="form-control dark-text" placeholder="Last Name" 
+                                   required pattern="[a-zA-Z\s]+" title="Last name must contain only letters" />
                             <label asp-for="Lastname" class="dark-label">Last Name</label>
                             <span asp-validation-for="Lastname" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-floating mb-3">
-                            <input asp-for="Course" class="form-control dark-text" placeholder="Course" required />
+                            <input asp-for="Age" type="number" class="form-control dark-text" placeholder="Age" min="1" max="120" />
+                            <label asp-for="Age" class="dark-label">Age</label>
+                            <span asp-validation-for="Age" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Course" class="form-control dark-text" placeholder="Course" 
+                                   required pattern="[a-zA-Z\s]+" title="Course must contain only letters" />
                             <label asp-for="Course" class="dark-label">Course</label>
                             <span asp-validation-for="Course" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-floating mb-3">
-                            <input asp-for="Email" type="email" class="form-control dark-text" placeholder="Email Address" required />
+                            <input asp-for="Email" type="email" class="form-control dark-text" placeholder="Email Address" 
+                                   required pattern="[a-zA-Z0-9._%+-]+@@gmail.com" title="Must be a Gmail address" />
                             <label asp-for="Email" class="dark-label">Email</label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>

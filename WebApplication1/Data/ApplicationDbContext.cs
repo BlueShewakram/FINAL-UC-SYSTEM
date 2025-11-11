@@ -29,7 +29,9 @@ namespace WebApplication1.Data
             
             // Reset the identity to the next available number
             var nextId = students.Count > 0 ? students.Count + 1 : 1;
-            await Database.ExecuteSqlRawAsync($"DBCC CHECKIDENT ('Students', RESEED, {students.Count})");
+#pragma warning disable EF1002 // Risk of SQL injection
+            await Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Students', RESEED, {0})", students.Count);
+#pragma warning restore EF1002 // Risk of SQL injection
         }
 
         public DbSet<Student> Students {get; set;}

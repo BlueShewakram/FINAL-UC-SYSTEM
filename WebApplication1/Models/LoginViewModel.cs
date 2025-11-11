@@ -6,11 +6,11 @@ namespace WebApplication1.Models
     {
         [Required]
         [Display(Name = "Username")]
-        public string Username { get; set; }
+        public required string Username { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
-        public string Password { get; set; }
+        public required string Password { get; set; }
     }
 }

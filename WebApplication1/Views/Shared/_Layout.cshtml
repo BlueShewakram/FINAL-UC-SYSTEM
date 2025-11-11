@@ -87,6 +87,25 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    @if (User?.Identity?.IsAuthenticated == true)
+    {
+        <script>
+            // Session timeout warning (7.5 hours before 8 hour timeout)
+            let warningTimeout = setTimeout(function() {
+                alert('Your session will expire in 30 minutes due to inactivity. Please save your work.');
+            }, 7.5 * 60 * 60 * 1000);
+
+            // Reset timeout on user activity
+            document.addEventListener('click', function() {
+                clearTimeout(warningTimeout);
+                warningTimeout = setTimeout(function() {
+                    alert('Your session will expire in 30 minutes due to inactivity. Please save your work.');
+                }, 7.5 * 60 * 60 * 1000);
+            });
+        </script>
+    }
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

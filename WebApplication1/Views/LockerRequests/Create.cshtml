@@ -16,7 +16,8 @@
                 <div class="row g-4">
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="Name" class="form-control dark-text" placeholder="Full Name" required />
+                            <input asp-for="Name" class="form-control dark-text" placeholder="Full Name" 
+                                   pattern="[a-zA-Z\s]+" title="Full Name must contain only letters and spaces" required />
                             <label asp-for="Name" class="dark-label">Full Name</label>
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
@@ -24,7 +25,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="IdNumber" class="form-control dark-text" placeholder="Student ID" required />
+                            <input asp-for="IdNumber" class="form-control dark-text" placeholder="Student ID" 
+                                   pattern="\d{8}" maxlength="8" title="Student ID must be exactly 8 digits" required />
                             <label asp-for="IdNumber" class="dark-label">Student ID Number</label>
                             <span asp-validation-for="IdNumber" class="text-danger"></span>
                         </div>
@@ -32,7 +34,9 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="LockerNumber" class="form-control dark-text" placeholder="Locker Number" required />
+                            <input asp-for="LockerNumber" class="form-control dark-text" placeholder="Locker Number" 
+                                   pattern="[A-Z0-9-]+" maxlength="20" title="Locker Number must contain only uppercase letters, numbers, and hyphens" 
+                                   style="text-transform: uppercase;" />
                             <label asp-for="LockerNumber" class="dark-label">Locker Number</label>
                             <span asp-validation-for="LockerNumber" class="text-danger"></span>
                         </div>
@@ -40,7 +44,11 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="Semester" class="form-control dark-text" placeholder="Semester" required />
+                            <select asp-for="Semester" class="form-select dark-text" required>
+                                <option value="">Select Semester</option>
+                                <option value="1st Semester">1st Semester</option>
+                                <option value="2nd Semester">2nd Semester</option>
+                            </select>
                             <label asp-for="Semester" class="dark-label">Semester</label>
                             <span asp-validation-for="Semester" class="text-danger"></span>
                         </div>
@@ -48,7 +56,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="ContactNumber" class="form-control dark-text" placeholder="Contact Number" required />
+                            <input asp-for="ContactNumber" class="form-control dark-text" placeholder="Contact Number" 
+                                   pattern="(09|\+639)\d{9}" title="Enter a valid Philippine mobile number (e.g., 09171234567 or +639171234567)" required />
                             <label asp-for="ContactNumber" class="dark-label">Contact Number</label>
                             <span asp-validation-for="ContactNumber" class="text-danger"></span>
                         </div>

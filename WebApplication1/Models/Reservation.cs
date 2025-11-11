@@ -8,15 +8,16 @@ namespace WebApplication1.Models
     {
         [Key]
         public int Id { get; set; }
+        
         [Required]
-        public string Organization { get; set;}
+        public required string Organization { get; set; }
 
         [Required]
         [Display(Name = "Activity Title")]
-        public string ActTitle { get; set; }
+        public required string ActTitle { get; set; }
 
         [Required]
-        public string Venue { get; set; }   
+        public required string Venue { get; set; }   
 
         [Display(Name = "Date Needed")]
         public DateTime DateNeeded { get; set; } = DateTime.Now;
@@ -32,29 +33,29 @@ namespace WebApplication1.Models
         public DateTime TimeTo { get; set; }
 
         [Required]
-        public string Participants { get; set; }
+        public required string Participants { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; } = DateTime.Now;
 
         [Required]
-        public string Speaker { get; set; }
+        public required string Speaker { get; set; }
 
         [Required]
         [Display(Name = "Purpose / Objective")]
-        public string PurposeObjective { get; set; }
+        public required string PurposeObjective { get; set; }
 
         [Display(Name = "Equipment & Other Facilities Needed")]
-        public string EquipmentFacilities { get; set; }
+        public required string EquipmentFacilities { get; set; }
 
         [Required]
         [Display(Name = "Nature of Activity")]
-        public string NatureOfActivity { get; set; }
+        public required string NatureOfActivity { get; set; }
 
         [Required]
         [Display(Name = "Source of Funds")]
-        public string SourceOfFunds { get; set; }
+        public required string SourceOfFunds { get; set; }
         
     // Status tracking (nullable so existing records are preserved)
     // These properties are mapped to DB columns. If the columns do not yet exist in your database

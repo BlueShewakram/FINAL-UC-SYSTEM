@@ -20,6 +20,14 @@ namespace WebApplication1
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/AccessDenied";
+        // Expire session when browser is closed
+        options.ExpireTimeSpan = TimeSpan.FromHours(8); // Session timeout
+        options.SlidingExpiration = true; // Renew session on activity
+        options.Cookie.IsEssential = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        // This makes the cookie a session cookie (deleted when browser closes)
+        options.Cookie.MaxAge = null;
     });
             var app = builder.Build();
 

@@ -3,100 +3,384 @@
     ViewData["Title"] = "My Locker Requests";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>My Locker Requests</h2>
-        <a asp-controller="LockerRequests" asp-action="Create" class="btn btn-info">+ New Request</a>
-    </div>
-
-    <div class="search-box mb-4">
-        <div class="input-group">
-            <span class="input-group-text bg-white border-end-0">
-                <i class="fas fa-search text-muted"></i>
-            </span>
-            <input type="text" id="lockerSearchInput" class="form-control border-start-0" placeholder="Search by name or student ID..." />
+<div class="request-list-wrapper">
+    <!-- Navigation Header -->
+    <div class="nav-header-section">
+        <div class="nav-title">
+            <h2><i class="fas fa-lock"></i> Locker Requests</h2>
         </div>
+        <a asp-controller="LockerRequests" asp-action="Create" class="nav-btn">
+            <i class="fas fa-plus"></i>
+            New Request
+        </a>
     </div>
 
-        @section Scripts {
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    var input = document.getElementById('lockerSearchInput');
-                    if (!input) return;
-                    var rows = function() { return Array.from(document.querySelectorAll('.table tbody tr')).filter(r => r.id !== 'noResults'); };
-                    var noResults = document.getElementById('noResults');
+    <!-- Main Card -->
+    <div class="request-card">
+        <!-- Card Header with Search -->
+        <div class="request-card-header">
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="lockerSearchInput" class="form-control search-input" placeholder="Search by name, student ID, or locker number..." />
+                </div>
+            </div>
+        </div>
 
-                    input.addEventListener('input', function(e) {
-                        var q = e.target.value.toLowerCase().trim();
-                        var visible = 0;
-                        rows().forEach(function(r) {
-                            // name is in cell index 1, id is index 2
-                            var name = (r.cells[1]?.textContent || '').toLowerCase();
-                            var id = (r.cells[2]?.textContent || '').toLowerCase();
-                            if (!q || name.indexOf(q) > -1 || id.indexOf(q) > -1) {
-                                r.style.display = 'table-row';
-                                visible++;
-                            } else {
-                                r.style.display = 'none';
-                            }
-                        });
-                        if (noResults) noResults.style.display = visible === 0 ? '' : 'none';
-                    });
-                });
-            </script>
-        }
-
-    <div class="table-responsive">
-        <table class="table table-hover" style="color: white">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>ID</th>
-                    <th>Locker</th>
-                    <th>Semester</th>
-                    <th>Contact</th>
-                    <th>File</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{ int counter = 1; }
-                @foreach (var r in Model)
-                {
-                    <tr style="color: white">
-                        <td>@(counter++)</td>
-                        <td>@r.Name</td>
-                        <td>@r.IdNumber</td>
-                        <td>@r.LockerNumber</td>
-                        <td>@r.Semester</td>
-                        <td>@r.ContactNumber</td>
-                        <td>
-                            @if (!string.IsNullOrEmpty(r.RegistrationFilePath))
-                            {
-                                <a href="@r.RegistrationFilePath" target="_blank">View</a>
-                            }
-                        </td>
-                        <td>
-                            @{ var status = r.Approved == null ? "Pending" : r.Approved == true ? "Approved" : "Rejected"; }
-                            <span class="@(status == "Approved" ? "text-success" : status == "Rejected" ? "text-danger" : "text-warning")">@status</span>
-                        </td>
-                        <td>@r.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy HH:mm")</td>
+        <!-- Table Content -->
+        <div class="table-card">
+            <table class="request-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> #</th>
+                        <th><i class="fas fa-user"></i> Name</th>
+                        <th><i class="fas fa-id-card"></i> Student ID</th>
+                        <th><i class="fas fa-lock"></i> Locker</th>
+                        <th><i class="fas fa-calendar"></i> Semester</th>
+                        <th><i class="fas fa-phone"></i> Contact</th>
+                        <th><i class="fas fa-file"></i> File</th>
+                        <th><i class="fas fa-info-circle"></i> Status</th>
+                        <th><i class="fas fa-clock"></i> Submitted</th>
                     </tr>
-                }
-                <tr id="noResults" style="display:none;color: white;">
-                    <td colspan="9" class="text-center">No search results found</td>
-                </tr>
+                </thead>
+                <tbody>
+                    @{ int counter = 1; }
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>@(counter++)</td>
+                            <td>@r.Name</td>
+                            <td>@r.IdNumber</td>
+                            <td>@(r.LockerNumber ?? "N/A")</td>
+                            <td>@r.Semester</td>
+                            <td>@r.ContactNumber</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(r.RegistrationFilePath))
+                                {
+                                    <a href="@r.RegistrationFilePath" target="_blank" class="file-link">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No file</span>
+                                }
+                            </td>
+                            <td>
+                                @{ 
+                                    var status = r.Approved == null ? "Pending" : r.Approved == true ? "Approved" : "Rejected"; 
+                                    var badgeClass = status == "Approved" ? "approved" : status == "Rejected" ? "rejected" : "pending";
+                                }
+                                <span class="status-badge @badgeClass">@status</span>
+                            </td>
+                            <td>@r.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr id="emptyState">
+                            <td colspan="9" class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No locker requests yet. Create your first request!</p>
+                            </td>
+                        </tr>
+                    }
+                    <tr id="noResults" style="display:none;">
+                        <td colspan="9" class="text-center py-4">
+                            <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No search results found</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-            </tbody>
-
-        </table>
-        <div>
-            <a asp-controller="LockerRequests" asp-action="Create" class="btn btn-outline-secondary text-white">
-                <i class="fas fa-arrow-left me-2"></i>Back to form
+        <!-- Card Footer -->
+        <div class="card-footer">
+            <a asp-controller="Home" asp-action="Index" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Home
             </a>
         </div>
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var input = document.getElementById('lockerSearchInput');
+            if (!input) return;
+            var rows = function() { 
+                return Array.from(document.querySelectorAll('.request-table tbody tr'))
+                    .filter(r => r.id !== 'noResults' && r.id !== 'emptyState'); 
+            };
+            var noResults = document.getElementById('noResults');
+            var emptyState = document.getElementById('emptyState');
+
+            input.addEventListener('input', function(e) {
+                var q = e.target.value.toLowerCase().trim();
+                var visible = 0;
+                rows().forEach(function(r) {
+                    // name is in cell index 1, id is index 2, locker is index 3
+                    var name = (r.cells[1]?.textContent || '').toLowerCase();
+                    var id = (r.cells[2]?.textContent || '').toLowerCase();
+                    var locker = (r.cells[3]?.textContent || '').toLowerCase();
+                    if (!q || name.indexOf(q) > -1 || id.indexOf(q) > -1 || locker.indexOf(q) > -1) {
+                        r.style.display = 'table-row';
+                        visible++;
+                    } else {
+                        r.style.display = 'none';
+                    }
+                });
+                if (emptyState) emptyState.style.display = 'none';
+                if (noResults) noResults.style.display = visible === 0 ? 'table-row' : 'none';
+            });
+        });
+    </script>
+}
+
+<style>
+    /* Main Container */
+    .request-list-wrapper {
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    /* Navigation Header */
+    .nav-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        gap: 2rem;
+    }
+
+    .nav-title {
+        flex: 1;
+        text-align: center;
+    }
+
+    .nav-title h2 {
+        margin: 0;
+        color: #1a237e;
+        font-size: 2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .nav-title h2 i {
+        color: #667eea;
+    }
+
+    .nav-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .nav-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        color: white;
+    }
+
+    /* Request Card */
+    .request-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .request-card-header {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-bottom: 3px solid #764ba2;
+    }
+
+    /* Search Container */
+    .search-container {
+        max-width: 100%;
+    }
+
+    .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1.2rem;
+        color: #667eea;
+        font-size: 1.1rem;
+        z-index: 1;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.9rem 1rem 0.9rem 3rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Table Card */
+    .table-card {
+        background: white;
+        overflow-x: auto;
+    }
+
+    /* Request Table Styling */
+    .request-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+    }
+
+    .request-table thead tr {
+        background: linear-gradient(135deg, #1a237e 0%, #2c3e82 100%);
+        color: white;
+    }
+
+    .request-table th {
+        padding: 1.2rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        white-space: nowrap;
+        font-size: 0.95rem;
+    }
+
+    .request-table th i {
+        margin-right: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .request-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        color: #333;
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    .request-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .request-table tbody tr:hover:not(#noResults):not(#emptyState) {
+        background-color: #f8f9ff;
+        transform: scale(1.002);
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .status-badge.pending {
+        background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+        color: #000;
+    }
+
+    .status-badge.approved {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+
+    .status-badge.rejected {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: white;
+    }
+
+    /* File Link */
+    .file-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .file-link:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+
+    /* Card Footer */
+    .card-footer {
+        padding: 1.5rem 2rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    @@media (max-width: 768px) {
+        .nav-header-section {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .request-list-wrapper {
+            padding: 1rem;
+        }
+
+        .request-table {
+            font-size: 0.85rem;
+        }
+
+        .request-table th,
+        .request-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+</style>

@@ -15,7 +15,8 @@
                 <div class="row g-4">
                     <div class="col-md-4">
                         <div class="form-floating mb-3">
-                            <input asp-for="StudentIdNo" class="form-control dark-text" placeholder="Student ID" required />
+                            <input asp-for="StudentIdNo" class="form-control dark-text" placeholder="Student ID" 
+                                   pattern="\d{8}" maxlength="8" title="Student ID must be exactly 8 digits" required />
                             <label asp-for="StudentIdNo" class="dark-label">Student ID</label>
                             <span asp-validation-for="StudentIdNo" class="text-danger"></span>
                         </div>
@@ -23,7 +24,8 @@
 
                     <div class="col-md-8">
                         <div class="form-floating mb-3">
-                            <input asp-for="StudentName" class="form-control dark-text" placeholder="Student Name" required />
+                            <input asp-for="StudentName" class="form-control dark-text" placeholder="Student Name" 
+                                   pattern="[a-zA-Z\s]+" title="Student Name must contain only letters and spaces" required />
                             <label asp-for="StudentName" class="dark-label">Student Name</label>
                             <span asp-validation-for="StudentName" class="text-danger"></span>
                         </div>
@@ -31,7 +33,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="StudentCourse" class="form-control dark-text" placeholder="Course" required />
+                            <input asp-for="StudentCourse" class="form-control dark-text" placeholder="Course" 
+                                   pattern="[a-zA-Z\s]+" title="Course must contain only letters and spaces" required />
                             <label asp-for="StudentCourse" class="dark-label">Course</label>
                             <span asp-validation-for="StudentCourse" class="text-danger"></span>
                         </div>
@@ -39,7 +42,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="StudentYear" class="form-control dark-text" placeholder="Year" required />
+                            <input asp-for="StudentYear" class="form-control dark-text" placeholder="Year" 
+                                   pattern="[1-5]" maxlength="1" title="Year Level must be between 1 and 5" required />
                             <label asp-for="StudentYear" class="dark-label">Year</label>
                             <span asp-validation-for="StudentYear" class="text-danger"></span>
                         </div>
@@ -47,7 +51,9 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="VehiclePlateNo" class="form-control dark-text" placeholder="Plate No" required />
+                            <input asp-for="VehiclePlateNo" class="form-control dark-text" placeholder="Plate No" 
+                                   pattern="[A-Z0-9\s-]+" maxlength="20" title="Plate Number must contain only uppercase letters, numbers, spaces, and hyphens" 
+                                   style="text-transform: uppercase;" required />
                             <label asp-for="VehiclePlateNo" class="dark-label">Plate No</label>
                             <span asp-validation-for="VehiclePlateNo" class="text-danger"></span>
                         </div>
@@ -55,7 +61,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="VehicleModel" class="form-control dark-text" placeholder="Model" required />
+                            <input asp-for="VehicleModel" class="form-control dark-text" placeholder="Model" 
+                                   pattern="[a-zA-Z0-9\s-]+" maxlength="50" title="Vehicle Model must contain only letters, numbers, spaces, and hyphens" required />
                             <label asp-for="VehicleModel" class="dark-label">Model</label>
                             <span asp-validation-for="VehicleModel" class="text-danger"></span>
                         </div>
@@ -63,7 +70,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="VehicleMake" class="form-control dark-text" placeholder="Make" required />
+                            <input asp-for="VehicleMake" class="form-control dark-text" placeholder="Make" 
+                                   pattern="[a-zA-Z\s]+" maxlength="50" title="Vehicle Make must contain only letters and spaces" required />
                             <label asp-for="VehicleMake" class="dark-label">Make</label>
                             <span asp-validation-for="VehicleMake" class="text-danger"></span>
                         </div>
@@ -71,7 +79,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="VehicleType" class="form-control dark-text" placeholder="Type" required />
+                            <input asp-for="VehicleType" class="form-control dark-text" placeholder="Type" 
+                                   pattern="[a-zA-Z\s]+" maxlength="30" title="Vehicle Type must contain only letters and spaces" required />
                             <label asp-for="VehicleType" class="dark-label">Type</label>
                             <span asp-validation-for="VehicleType" class="text-danger"></span>
                         </div>

@@ -4,10 +4,15 @@
 }
 
 <div class="reservation-content-wrapper">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="fw-bold">Reservation List</h1>
-        <a asp-controller="Reservation" asp-action="Add" class="btn btn-info">
-            + Create Reservation
+    <div class="reservation-header-section">
+        <div class="header-content">
+            <h1 class="reservation-main-title">
+                <i class="fas fa-calendar-check"></i> Reservation List
+            </h1>
+            <p class="reservation-subtitle">View and manage all venue reservations</p>
+        </div>
+        <a asp-controller="Reservation" asp-action="Add" class="create-btn">
+            <i class="fas fa-plus-circle"></i> Create Reservation
         </a>
     </div>
 
@@ -15,30 +20,31 @@
         <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="searchInput" class="search-input" 
-                   placeholder="Search by organization, activity, speaker, or date..." />
+                   placeholder="🔍 Search by organization, activity, speaker, or date..." />
         </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Organization</th>
-                    <th>Activity Title</th>
-                    <th>Date Needed</th>
-                    <th>Time From</th>
-                    <th>Time To</th>
-                    <th>Participants</th>
-                    <th>Date</th>
-                    <th>Speaker</th>
-                    <th>Purpose/Objective</th>
-                    <th>Equipment/Facilities</th>
-                    <th>Nature of Activity</th>
-                    <th>Source of Funds</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="reservation-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-building"></i> Organization</th>
+                        <th><i class="fas fa-tasks"></i> Activity Title</th>
+                        <th><i class="fas fa-calendar"></i> Date Needed</th>
+                        <th><i class="fas fa-clock"></i> Time From</th>
+                        <th><i class="fas fa-clock"></i> Time To</th>
+                        <th><i class="fas fa-users"></i> Participants</th>
+                        <th><i class="fas fa-calendar-day"></i> Date</th>
+                        <th><i class="fas fa-microphone"></i> Speaker</th>
+                        <th><i class="fas fa-bullseye"></i> Purpose/Objective</th>
+                        <th><i class="fas fa-tools"></i> Equipment/Facilities</th>
+                        <th><i class="fas fa-tag"></i> Nature of Activity</th>
+                        <th><i class="fas fa-dollar-sign"></i> Source of Funds</th>
+                        <th><i class="fas fa-info-circle"></i> Status</th>
+                    </tr>
+                </thead>
+                <tbody>
                 @foreach (var reservation in Model)
                 {
                     <tr>
@@ -55,7 +61,17 @@
                         <td>@reservation.NatureOfActivity</td>
                         <td>@reservation.SourceOfFunds</td>
                         <td>
-                            <span class="badge bg-success">Approved</span>
+                            @{
+                                var status = reservation.Approved == null ? "Pending" : 
+                                           reservation.Approved == true ? "Approved" : "Rejected";
+                                var statusClass = status == "Approved" ? "bg-success" :
+                                                status == "Rejected" ? "bg-danger" : "bg-warning";
+                            }
+                            <span class="badge @statusClass">@status</span>
+                            @if (!string.IsNullOrEmpty(reservation.Approver) && reservation.Approved != null)
+                            {
+                                <br /><small class="text-muted">by @reservation.Approver</small>
+                            }
                         </td>
                         <td class="action-buttons">
                             @if (User.IsInRole("Admin") && reservation.Approved == null)
@@ -92,245 +108,335 @@
         </table>
     </div>
 
-
-    <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
-        <ul class="pagination">
-            @if (ViewBag.CurrentPage > 1)
-            {
-                <li class="page-item">
-                    <a class="page-link" href="@Url.Action("ResUI", new { page = ViewBag.CurrentPage - 1 })">&laquo;</a>
-                </li>
-            }
-            @for (int i = 1; i <= ViewBag.TotalPages; i++)
-            {
-                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("ResUI", new { page = i })">@i</a>
-                </li>
-            }
-            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-            {
-                <li class="page-item">
-                    <a class="page-link" href="@Url.Action("ResUI", new { page = ViewBag.CurrentPage + 1 })">&raquo;</a>
-                </li>
-            }
-        </ul>
-    </nav>
-    <div>
-        <a asp-controller="Reservation" asp-action="Add" class="btn btn-outline-secondary text-white">
-            <i class="fas fa-arrow-left me-2"></i>Back to form
+    <div class="pagination-footer">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("ResUI", new { page = ViewBag.CurrentPage - 1 })">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                }
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("ResUI", new { page = i })">@i</a>
+                    </li>
+                }
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("ResUI", new { page = ViewBag.CurrentPage + 1 })">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+        <a asp-controller="Reservation" asp-action="Add" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to form
         </a>
     </div>
 </div>
 
 <style>
-    .reservation-container {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    /* Main Container */
+    .reservation-content-wrapper {
         padding: 2rem;
-        margin: 2rem auto;
-        max-width: 1400px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
     }
 
-    .reservation-header {
+    /* Header Section */
+    .reservation-header-section {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
 
-    .reservation-title {
-        font-size: 2rem;
+    .header-content {
+        flex: 1;
+    }
+
+    .reservation-main-title {
+        font-size: 2.5rem;
         color: #1a237e;
         margin: 0;
-        font-weight: 600;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 
+    .reservation-main-title i {
+        color: #667eea;
+    }
+
+    .reservation-subtitle {
+        color: #6c757d;
+        margin: 0.5rem 0 0 0;
+        font-size: 1.1rem;
+    }
+
+    .create-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        color: white;
+    }
+
+    /* Search Container */
     .search-container {
         margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
 
     .search-wrapper {
         position: relative;
-        max-width: 600px;
+        max-width: 100%;
     }
 
     .search-icon {
         position: absolute;
-        left: 1rem;
+        left: 1.5rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #6c757d;
+        color: #667eea;
+        font-size: 1.2rem;
     }
 
     .search-input {
         width: 100%;
-        padding: 1rem 1rem 1rem 3rem;
+        padding: 1.2rem 1.5rem 1.2rem 4rem;
         border: 2px solid #e0e0e0;
-        border-radius: 8px;
+        border-radius: 50px;
         font-size: 1rem;
         transition: all 0.3s ease;
     }
 
     .search-input:focus {
         outline: none;
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     }
 
-    .table {
+    /* Table Card */
+    .table-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    /* Table Styling */
+    .reservation-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
         background: white;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-top: 1rem;
-        font-size: 0.9rem;
     }
 
-    .table th {
-        background: #1a237e;
+    .reservation-table thead tr {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        font-weight: 500;
-        padding: 1rem;
-        text-align: left;
-        white-space: nowrap;
     }
 
-    .table td {
+    .reservation-table th {
+        padding: 1.2rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        white-space: nowrap;
+        font-size: 0.95rem;
+        border-bottom: 3px solid #764ba2;
+    }
+
+    .reservation-table th i {
+        margin-right: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .reservation-table td {
         padding: 1rem;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #f0f0f0;
         color: #333;
-        background-color: white;
+        font-size: 0.9rem;
         vertical-align: middle;
     }
 
-    .table tr:hover td {
-        background-color: #f8f9fa;
+    .reservation-table tbody tr {
+        transition: all 0.3s ease;
     }
 
-    .btn-group .btn {
-        padding: 0.25rem 0.5rem;
+    .reservation-table tbody tr:hover {
+        background-color: #f8f9ff;
+        transform: scale(1.01);
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.1);
     }
 
+    .reservation-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Status Badges */
     .badge {
-        padding: 0.5em 0.75em;
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: white;
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+        color: #000;
+    }
+
+    .text-muted {
+        color: #6c757d !important;
+        font-size: 0.8rem;
+        font-style: italic;
+    }
+
+    /* Pagination Footer */
+    .pagination-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .pagination {
+        margin: 0;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .page-link {
+        color: #667eea;
+        padding: 0.6rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
         font-weight: 500;
     }
 
-    .create-reservation-btn {
-        background-color: #0d6efd;
+    .page-link:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .back-btn {
+        padding: 0.8rem 1.5rem;
+        background: #6c757d;
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
         display: flex;
         align-items: center;
         gap: 0.5rem;
         transition: all 0.3s ease;
-        text-decoration: none;
+        font-weight: 500;
     }
 
-    .create-reservation-btn:hover {
-        background-color: #0b5ed7;
+    .back-btn:hover {
+        background: #5a6268;
+        color: white;
         transform: translateY(-2px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        color: white;
-        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
     }
 
-    /* Status badges */
-    .badge.bg-success {
-        background-color: #198754 !important;
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .reservation-header-section {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .reservation-main-title {
+            font-size: 1.8rem;
+            justify-content: center;
+        }
+
+        .pagination-footer {
+            flex-direction: column;
+        }
+
+        .reservation-table {
+            font-size: 0.85rem;
+        }
+
+        .reservation-table th,
+        .reservation-table td {
+            padding: 0.8rem 0.5rem;
+        }
     }
 
-    .badge.bg-warning {
-        background-color: #ffc107 !important;
-        color: #000;
+    /* No Results Row */
+    #noResults {
+        background: #f8f9fa;
     }
 
-    .badge.bg-danger {
-        background-color: #dc3545 !important;
-    }
-
-    /* Responsive table */
-    .table-responsive {
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Pagination styling */
-    .pagination {
-        margin-bottom: 0;
-    }
-
-    .page-link {
-        color: #0d6efd;
-        padding: 0.5rem 0.75rem;
-    }
-
-    .page-item.active .page-link {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        white-space: nowrap;
-        padding: 0.5rem !important;
-    }
-
-    .action-btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
+    #noResults td {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+        font-size: 1.1rem;
         font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin: 0 0.25rem;
-    }
-
-    .approve-btn {
-        background-color: #28a745;
-        color: white;
-    }
-
-    .reject-btn {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .delete-btn {
-        background-color: #6c757d;
-        color: white;
-    }
-
-    .action-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        opacity: 0.9;
-    }
-
-    /* Status badges */
-    .badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 500;
-    }
-
-    .bg-success {
-        background-color: #28a745 !important;
-    }
-
-    .bg-danger {
-        background-color: #dc3545 !important;
-    }
-
-    .bg-warning {
-        background-color: #ffc107 !important;
-        color: #000 !important;
     }
 </style>
 

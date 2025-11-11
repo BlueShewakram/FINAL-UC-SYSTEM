@@ -17,7 +17,8 @@
                 <div class="row g-4">
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="SchoolIdNumber" class="form-control dark-text" placeholder="School ID Number" required />
+                            <input asp-for="SchoolIdNumber" class="form-control dark-text" placeholder="School ID Number" 
+                                   required pattern="\d{8}" maxlength="8" title="Must be exactly 8 digits" />
                             <label asp-for="SchoolIdNumber" class="dark-label" style="color: black">School ID Number</label>
                             <span asp-validation-for="SchoolIdNumber" class="text-danger"></span>
                         </div>
@@ -27,7 +28,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="Firstname" class="form-control dark-text" placeholder="First Name" required />
+                            <input asp-for="Firstname" class="form-control dark-text" placeholder="First Name" 
+                                   required pattern="[a-zA-Z\s]+" title="First name must contain only letters" />
                             <label asp-for="Firstname" class="dark-label" style="color: black">First Name</label>
                             <span asp-validation-for="Firstname" class="text-danger"></span>
                         </div>
@@ -35,7 +37,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="Lastname" class="form-control dark-text" placeholder="Last Name" required />
+                            <input asp-for="Lastname" class="form-control dark-text" placeholder="Last Name" 
+                                   required pattern="[a-zA-Z\s]+" title="Last name must contain only letters" />
                             <label asp-for="Lastname" class="dark-label" style="color: black">Last Name</label>
                             <span asp-validation-for="Lastname" class="text-danger"></span>
                         </div>
@@ -52,7 +55,8 @@
 
                     <div class="col-md-3">
                         <div class="form-floating mb-3">
-                            <input asp-for="Course" class="form-control dark-text" placeholder="Course" />
+                            <input asp-for="Course" class="form-control dark-text" placeholder="Course" 
+                                   required pattern="[a-zA-Z\s]+" title="Course must contain only letters" />
                             <label asp-for="Course" class="dark-label" style="color: black">Course</label>
                             <span asp-validation-for="Course" class="text-danger"></span>
                         </div>
@@ -68,7 +72,8 @@
 
                     <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <input asp-for="Email" type="email" class="form-control dark-text" placeholder="Email" required />
+                            <input asp-for="Email" type="email" class="form-control dark-text" placeholder="Email" 
+                                   required pattern="[a-zA-Z0-9._%+-]+@@gmail.com" title="Must be a Gmail address (example@gmail.com)" />
                             <label asp-for="Email" class="dark-label" style="color: black">Email</label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>

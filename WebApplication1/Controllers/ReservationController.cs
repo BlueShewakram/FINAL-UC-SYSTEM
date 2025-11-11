@@ -62,11 +62,24 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Ensure the reservation status columns exist
+                EnsureReservationStatusColumns();
+                
+                // Set the reservation to pending status (not approved yet)
+                obj.Approved = null;  // null = Pending status
+                obj.Approver = null;
+                obj.ApprovalDate = null;
+                
                 _db.Reservations.Add(obj);
                 _db.SaveChanges();
+                
+                TempData["success"] = "Reservation created successfully and is pending approval";
                 return RedirectToAction("ResUI");
             }
-            return View();
+            
+            // Show validation errors if model is invalid
+            TempData["error"] = "Please fill in all required fields correctly";
+            return View(obj);
         }
         
         // Admin list with approve/delete actions
@@ -153,6 +166,28 @@ namespace WebApplication1.Controllers
                 var reservations = query.Take(pageSize).ToList();
                 return PartialView("AdminList", reservations);
             }
+            return RedirectToAction("AdminList");
+        }
+        
+        // One-time action to reset all existing reservations to pending
+        [Authorize(Roles = "Admin")]
+        public IActionResult ResetAllToPending()
+        {
+            EnsureReservationStatusColumns();
+            
+            // Get all reservations
+            var allReservations = _db.Reservations.ToList();
+            
+            // Set them all to pending
+            foreach (var reservation in allReservations)
+            {
+                reservation.Approved = null;
+                reservation.Approver = null;
+                reservation.ApprovalDate = null;
+            }
+            
+            _db.SaveChanges();
+            TempData["success"] = $"Successfully reset {allReservations.Count} reservations to pending status";
             return RedirectToAction("AdminList");
         }
         
