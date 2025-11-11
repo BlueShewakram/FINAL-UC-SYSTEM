@@ -36,7 +36,7 @@ namespace WebApplication1.Controllers
             if (ModelState.IsValid)
             {
                 // Admin (hardcoded for now)
-                if (model.Username == "shewakram" && model.Password == "123")
+                if (model.Username == "admin" && model.Password == "123")
                 {
                     var claims = new List<Claim>
                     {
