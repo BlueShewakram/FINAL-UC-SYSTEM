@@ -7,7 +7,7 @@
 <div class="student-content-wrapper">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="student-list-title">Student List</h1>
-        <a asp-action="Create" class="btn btn-create">+ Create New Student</a>
+        <a asp-action="Create" class="btn btn-create" style="">+ Create New Student</a>
     </div>
 
     <div class="search-container mb-4">
@@ -67,6 +67,11 @@
                 </li>
             </ul>
         </nav>
+    <div>
+        <a asp-controller="Home"  asp-action="Index" class="btn btn-outline-secondary text-white">
+        <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+    </div>
 
 @section Scripts {
     <script src="~/js/student-list.js"></script>

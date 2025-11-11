@@ -60,25 +60,26 @@
                             }
                         </td>
                         <td style="white-space:nowrap;">
+                            @* Show Approve/Reject when Pending; otherwise show single action(s) *@
                             @if (r.Approved == null)
                             {
-                                <form asp-action="Approve" method="post" style="display:inline">
+                                <form class="admin-action-form" asp-action="Approve" method="post" style="display:inline; margin-right:4px;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@r.Id" />
-                                    <input type="hidden" name="approved" value="true" />
-                                    <button type="submit" class="action-btn approve-btn">Approve</button>
+                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
                                 </form>
-                                <form asp-action="Approve" method="post" style="display:inline">
+
+                                <form class="admin-action-form" asp-action="Reject" method="post" style="display:inline; margin-right:4px;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@r.Id" />
-                                    <input type="hidden" name="approved" value="false" />
-                                    <button type="submit" class="action-btn reject-btn">Reject</button>
+                                    <button type="submit" class="btn btn-warning btn-sm">Reject</button>
                                 </form>
                             }
+
                             <form asp-action="Delete" method="post" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this reservation?');">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="action-btn delete-btn">Delete</button>
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </td>
                     </tr>

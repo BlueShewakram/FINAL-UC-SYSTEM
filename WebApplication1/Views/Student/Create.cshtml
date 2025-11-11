@@ -4,64 +4,99 @@
     ViewData["Title"] = "Create Student";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card bg-white rounded-4 shadow">
-                <div class="card-header bg-primary text-white py-3 rounded-top-4">
-                    <h2 class="text-center mb-0">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Create Student
-                    </h2>
-                </div>
-                <div class="card-body bg-white px-4 py-5">
-                    <form method="post" asp-action="Create">
-                        <div class="mb-4">
-                            <label asp-for="Firstname" class="form-label text-dark">First Name <span class="text-danger">*</span></label>
-                            <input asp-for="Firstname" class="form-control form-control-lg" required placeholder="Enter first name" />
+<div class="reservation-form-wrapper">
+    <div class="form-header mb-4">
+        <h2 style="color: white">Create Student</h2>
+        <p style="color: white">Please fill in the student details below</p>
+    </div>
+
+    <form method="post" asp-action="Create" class="needs-validation" novalidate>
+        <div class="card shadow-sm">
+            <div class="card-body bg-white">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Firstname" class="form-control dark-text" placeholder="First Name" required />
+                            <label asp-for="Firstname" class="dark-label">First Name</label>
                             <span asp-validation-for="Firstname" class="text-danger"></span>
                         </div>
+                    </div>
 
-                        <div class="mb-4">
-                            <label asp-for="Lastname" class="form-label text-dark">Last Name <span class="text-danger">*</span></label>
-                            <input asp-for="Lastname" class="form-control form-control-lg" required placeholder="Enter last name" />
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Lastname" class="form-control dark-text" placeholder="Last Name" required />
+                            <label asp-for="Lastname" class="dark-label">Last Name</label>
                             <span asp-validation-for="Lastname" class="text-danger"></span>
                         </div>
+                    </div>
 
-                        <div class="mb-4">
-                            <label asp-for="Course" class="form-label text-dark">Course <span class="text-danger">*</span></label>
-                            <input asp-for="Course" class="form-control form-control-lg" required placeholder="Enter course" />
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Course" class="form-control dark-text" placeholder="Course" required />
+                            <label asp-for="Course" class="dark-label">Course</label>
                             <span asp-validation-for="Course" class="text-danger"></span>
                         </div>
+                    </div>
 
-                        <div class="mb-4">
-                            <label asp-for="Email" class="form-label text-dark">Email <span class="text-danger">*</span></label>
-                            <input asp-for="Email" class="form-control form-control-lg" required placeholder="Enter email address" type="email" />
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" type="email" class="form-control dark-text" placeholder="Email Address" required />
+                            <label asp-for="Email" class="dark-label">Email</label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
+                    </div>
 
-                        <div class="mb-4">
-                            <label asp-for="DateCreated" class="form-label text-dark">Date Created <span class="text-danger">*</span></label>
-                            <input asp-for="DateCreated" class="form-control form-control-lg" type="date" required />
+                    <div class="col-md-4">
+                        <div class="form-floating mb-3">
+                            <input asp-for="DateCreated" type="date" class="form-control dark-text" placeholder="Date Created" required />
+                            <label asp-for="DateCreated" class="dark-label">Date Created</label>
                             <span asp-validation-for="DateCreated" class="text-danger"></span>
                         </div>
+                    </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg rounded-3 py-3" style="background: linear-gradient(to right, #0d6efd, #0a58ca);">
-                                Create Student
-                            </button>
-                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Back to List</a>
-                        </div>
-                    </form>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary text-dark">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Create Student
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </form>
 </div>
 
+<style>
+    .reservation-form-wrapper { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .form-header h2 { color: #000; font-weight: 600; }
+    .card { border: 1px solid #dee2e6; border-radius: 10px; }
+    .form-floating > .form-control, .form-floating > .form-select { height: calc(3.5rem + 2px); line-height: 1.25; color: #000 !important; background-color: #fff !important; }
+    .dark-text { color: #000 !important; }
+    .dark-label { color: #495057 !important; }
+    .btn-primary { background-color: #1a237e; border-color: #1a237e; color: #fff !important; }
+</style>
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script>
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) { event.preventDefault(); event.stopPropagation(); }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+
+        document.querySelectorAll('.form-control, .form-select').forEach(function(element) {
+            element.addEventListener('input', function() { this.style.color = '#000'; });
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

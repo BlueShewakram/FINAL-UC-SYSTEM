@@ -1,0 +1,98 @@
+﻿@model IEnumerable<WebApplication1.Models.GatePassModel>
+@{
+    ViewData["Title"] = "GatePass Admin";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold">Gate Pass Requests</h1>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover" style="color: white">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Course</th>
+                    <th>Year</th>
+                    <th>Plate</th>
+                    <th>Vehicle</th>
+                    <th>Type</th>
+                    <th>OR</th>
+                    <th>CR</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int counter = 1; }
+                @foreach (var g in Model)
+                {
+                    <tr style="color: white">
+                        <td>@(counter++)</td>
+                        <td>@g.StudentIdNo</td>
+                        <td>@g.StudentName</td>
+                        <td>@g.StudentCourse</td>
+                        <td>@g.StudentYear</td>
+                        <td>@g.VehiclePlateNo</td>
+                        <td>@g.VehicleModel @(" / ") @g.VehicleMake</td>
+                        <td>@g.VehicleType</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(g.OrDocumentPath)) { <a href="@g.OrDocumentPath" target="_blank">View</a> }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(g.CrDocumentPath)) { <a href="@g.CrDocumentPath" target="_blank">View</a> }
+                        </td>
+                        <td>
+                            <span class="@(g.Status == "Approved" ? "text-success" : g.Status == "Rejected" ? "text-danger" : "text-warning")">@g.Status</span>
+                        </td>
+                        <td style="white-space:nowrap;">
+                            <form class="admin-action-form" asp-action="Approve" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@g.Id" />
+                                <input type="hidden" name="approve" value="true" />
+                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+                            <form class="admin-action-form" asp-action="Approve" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@g.Id" />
+                                <input type="hidden" name="approve" value="false" />
+                                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                            </form>
+                            <form class="admin-action-form" asp-action="Delete" method="post" style="display:inline" data-confirm="Are you sure you want to delete this gatepass?">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@g.Id" />
+                                <button type="submit" class="btn btn-secondary btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="Page navigation" class="d-flex justify-content-center mt-3">
+        <ul class="pagination">
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link admin-page-link" href="@Url.Action("AdminList", "GatePass", new { page = ViewBag.CurrentPage - 1 })">&laquo;</a>
+                </li>
+            }
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link admin-page-link" href="@Url.Action("AdminList", "GatePass", new { page = i })">@i</a>
+                </li>
+            }
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link admin-page-link" href="@Url.Action("AdminList", "GatePass", new { page = ViewBag.CurrentPage + 1 })">&raquo;</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>

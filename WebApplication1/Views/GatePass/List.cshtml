@@ -1,0 +1,99 @@
+﻿@model IEnumerable<WebApplication1.Models.GatePassModel>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Gate Pass Request Lists";
+}
+<div class="container p-3">
+    <div class="row pt-4">
+        <div class ="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">Gate Pass Request Lists</h2>
+            <a asp-action="Index" class="btn btn-info">+ Create Gate Pass</a>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="table-responsive" style="display: flex;justify-content: center; align-items: center; margin-top: 5px;">
+        <table class="table table-striped-columns text-center align-middle w-75">
+            <thead class="table-primary">
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Course</th>
+                    <th>Year</th>
+                    <th>Plate No</th>
+                    <th>Model</th>
+                    <th>Make</th>
+                    <th>Type</th>
+                    <th>OR File</th>
+                    <th>CR File</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var obj in Model)
+                    {
+                        <tr style="color: white">
+                            <td>@obj.StudentIdNo</td>
+                            <td>@obj.StudentName</td>
+                            <td>@obj.StudentCourse</td>
+                            <td>@obj.StudentYear</td>
+                            <td>@obj.VehiclePlateNo</td>
+                            <td>@obj.VehicleModel</td>
+                            <td>@obj.VehicleMake</td>
+                            <td>@obj.VehicleType</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(obj.OrDocumentPath))
+                                {
+                                    <a href="@obj.OrDocumentPath" target="_blank" class="btn btn-link" style="color: white">View OR</a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(obj.CrDocumentPath))
+                                {
+                                    <a href="@obj.CrDocumentPath" target="_blank" class="btn btn-link" style="color: white">View CR</a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td>
+                                @{ 
+                                    var status = string.IsNullOrEmpty(obj.Status) ? "Pending" : obj.Status;
+                                    var badgeClass = status == "Approved" ? "badge bg-success" : status == "Rejected" ? "badge bg-danger" : "badge bg-warning";
+                                }
+                                <span class="@badgeClass">@status</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="11" class="text-center text-muted">No gatepass records found.</td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <a asp-controller="GatePass" asp-action="Index" class="btn btn-outline-secondary text-white">
+            <i class="fas fa-arrow-left me-2"></i>Back to form
+        </a>
+    </div>
+
+
+
+
+

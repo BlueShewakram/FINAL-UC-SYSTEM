@@ -57,16 +57,12 @@ namespace WebApplication1.Models
         public string SourceOfFunds { get; set; }
         
     // Status tracking (nullable so existing records are preserved)
-    // Marked [NotMapped] for now because the database schema may not yet include these columns.
-    // This prevents EF from querying non-existent columns and avoids the SqlException.
-    // TODO: remove [NotMapped] and add an EF migration to persist these fields when ready.
-    [NotMapped]
+    // These properties are mapped to DB columns. If the columns do not yet exist in your database
+    // the controller will attempt to add them at runtime (requires DB permissions).
     public bool? Approved { get; set; }
 
-    [NotMapped]
     public string? Approver { get; set; }
 
-    [NotMapped]
     public DateTime? ApprovalDate { get; set; }
     }
 }

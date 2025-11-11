@@ -34,6 +34,7 @@ namespace WebApplication1.Data
 
         public DbSet<Student> Students {get; set;}
         public DbSet<Reservation> Reservations { get; set; }
-        public DbSet<LockerRequest> LockerRequests { get; set; }    
-    }
+        public DbSet<LockerRequest> LockerRequests { get; set; }  
+        public DbSet<GatePassModel> GatePasses { get; set; }
+        }
 }
