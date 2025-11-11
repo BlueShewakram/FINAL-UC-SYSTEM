@@ -45,27 +45,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
         if (currentPage > totalPages) currentPage = totalPages;
 
-        // Debug: log pagination state so we can diagnose issues
-        console.log('[student-list] renderPage:', {
-            totalRows: getAllRows().length,
-            filteredRows: filtered.length,
-            rowsPerPage: rowsPerPage,
-            totalPages: totalPages,
-            currentPage: currentPage
-        });
-
-        // If there is 1 or fewer pages, hide the pagination entirely (requirement: hide when total rows <= rowsPerPage)
+        // If there is 1 or fewer pages, hide the pagination entirely
         if (paginationList) {
             paginationList.style.display = totalPages <= 1 ? 'none' : '';
         }
 
-        // Hide all rows first
-        getAllRows().forEach(r => r.style.display = 'none');
+        // Get rows to show on current page
+        const start = (currentPage - 1) * rowsPerPage;
+        const pageRows = filtered.slice(start, start + rowsPerPage);
+        const allRows = getAllRows();
 
-    // Show only the rows for the current page
-    const start = (currentPage - 1) * rowsPerPage;
-    const pageRows = filtered.slice(start, start + rowsPerPage);
-    pageRows.forEach(r => r.style.display = 'table-row');
+        // Fade out all rows first
+        allRows.forEach(r => {
+            if (!pageRows.includes(r)) {
+                r.style.opacity = '0';
+                r.style.transition = 'opacity 0.2s ease';
+                setTimeout(() => {
+                    r.style.display = 'none';
+                }, 200);
+            }
+        });
+
+        // Fade in page rows after brief delay
+        setTimeout(() => {
+            pageRows.forEach(r => {
+                r.style.display = 'table-row';
+                r.style.opacity = '0';
+                r.style.transition = 'opacity 0.3s ease';
+                // Force reflow
+                r.offsetHeight;
+                r.style.opacity = '1';
+            });
+        }, 250);
 
         // Disable/enable Prev/Next buttons
         if (prevBtn) prevBtn.disabled = currentPage <= 1;
@@ -127,11 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Wire up search: reset to page 1 and re-render when search input changes
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
-            const searchText = e.target.value.toLowerCase();
-            getAllRows().forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchText) ? 'table-row' : 'none';
-            });
             currentPage = 1;
             renderPage();
         });
