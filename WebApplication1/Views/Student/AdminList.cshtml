@@ -23,7 +23,9 @@
             <div class="search-container">
                 <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInput" class="form-control search-input" placeholder="Search by name, course, or email..." />
+                    <input type="text" id="searchInput" class="form-control search-input" 
+                           placeholder="Search by name, course, or email..." 
+                           oninput="filterStudentTable(this.value)" />
                 </div>
             </div>
         </div>
@@ -51,12 +53,17 @@
                     <td>@Html.DisplayFor(modelItem => item.Email)</td>
                     <td>
                         <div class="action-buttons">
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="action-btn edit-btn">
+                            <a asp-action="Edit" asp-route-id="@item.Id" asp-route-fromAdmin="true" class="action-btn edit-btn">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this student?')">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
+                            <form asp-action="Delete" asp-controller="Student" method="post" class="d-inline admin-action-form"
+                                  onsubmit="return confirm('Are you sure you want to delete this student?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="action-btn delete-btn">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -67,12 +74,12 @@
     </div>
 
     <!-- Pagination -->
-    <nav aria-label="Page navigation" class="pagination-wrapper">
+    <nav aria-label="Page navigation" class="pagination-wrapper" id="studentPagination">
         <ul class="custom-pagination">
             @if (ViewBag.CurrentPage > 1)
             {
                 <li class="page-item">
-                    <a class="page-link" href="@Url.Action("AdminList", "Student", new { page = ViewBag.CurrentPage - 1 })">
+                    <a class="page-link page-nav-link" href="@Url.Action("AdminList", "Student", new { page = ViewBag.CurrentPage - 1 })" data-page="@(ViewBag.CurrentPage - 1)">
                         <i class="fas fa-chevron-left"></i> Previous
                     </a>
                 </li>
@@ -80,13 +87,13 @@
             @for (int i = 1; i <= ViewBag.TotalPages; i++)
             {
                 <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("AdminList", "Student", new { page = i })">@i</a>
+                    <a class="page-link page-nav-link" href="@Url.Action("AdminList", "Student", new { page = i })" data-page="@i">@i</a>
                 </li>
             }
             @if (ViewBag.CurrentPage < ViewBag.TotalPages)
             {
                 <li class="page-item">
-                    <a class="page-link" href="@Url.Action("AdminList", "Student", new { page = ViewBag.CurrentPage + 1 })">
+                    <a class="page-link page-nav-link" href="@Url.Action("AdminList", "Student", new { page = ViewBag.CurrentPage + 1 })" data-page="@(ViewBag.CurrentPage + 1)">
                         Next <i class="fas fa-chevron-right"></i>
                     </a>
                 </li>
@@ -95,9 +102,171 @@
     </nav>
 </div>
 
-@section Scripts {
-    <script src="~/js/student-list.js"></script>
-}
+<script>
+    // Track all students data for client-side search
+    var allStudentsData = [];
+    
+    // Intercept pagination clicks to prevent navigation
+    setTimeout(function() {
+        const paginationLinks = document.querySelectorAll('.page-nav-link');
+        paginationLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const pageNum = this.getAttribute('data-page');
+                loadStudentPage(pageNum);
+            });
+        });
+    }, 100);
+    
+    function loadStudentPage(page) {
+        const container = document.querySelector('.admin-card');
+        if (!container) return;
+        
+        // Show loading
+        container.style.opacity = '0.6';
+        
+        fetch('/Student/AdminList?page=' + page, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse and extract the admin card content
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newCard = doc.querySelector('.admin-card');
+            const newPagination = doc.querySelector('.pagination-wrapper');
+            
+            if (newCard) {
+                container.innerHTML = newCard.innerHTML;
+            }
+            
+            // Re-add pagination if it exists
+            if (newPagination) {
+                const oldPagination = document.querySelector('.pagination-wrapper');
+                if (oldPagination && oldPagination.parentNode) {
+                    oldPagination.parentNode.replaceChild(newPagination.cloneNode(true), oldPagination);
+                }
+            }
+            
+            container.style.opacity = '1';
+            
+            // Re-attach pagination listeners
+            setTimeout(function() {
+                const paginationLinks = document.querySelectorAll('.page-nav-link');
+                paginationLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const pageNum = this.getAttribute('data-page');
+                        loadStudentPage(pageNum);
+                    });
+                });
+            }, 100);
+            
+            // Re-execute search script
+            const scripts = document.querySelectorAll('.admin-card script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                newScript.textContent = oldScript.textContent;
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+        })
+        .catch(err => {
+            console.error('Error loading page:', err);
+            container.style.opacity = '1';
+        });
+    }
+    
+    // Define the search filter function globally so oninput can call it
+    function filterStudentTable(searchText) {
+        console.log('Filter called with:', searchText);
+        searchText = searchText.toLowerCase().trim();
+        
+        if (!searchText) {
+            // If no search text, show pagination and current page only
+            showPaginationView();
+            return;
+        }
+        
+        // When searching, fetch all students and display filtered results
+        fetchAllStudentsAndFilter(searchText);
+    }
+    
+    function showPaginationView() {
+        const tableRows = document.querySelectorAll('.admin-table tbody tr');
+        const pagination = document.querySelector('.pagination-wrapper');
+        
+        // Show all rows (server already paginated them)
+        tableRows.forEach(row => {
+            row.style.display = '';
+        });
+        
+        // Show pagination
+        if (pagination) {
+            pagination.style.display = '';
+        }
+    }
+    
+    function fetchAllStudentsAndFilter(searchText) {
+        const tbody = document.querySelector('.admin-table tbody');
+        const pagination = document.querySelector('.pagination-wrapper');
+        
+        if (!tbody) return;
+        
+        // Hide pagination during search
+        if (pagination) {
+            pagination.style.display = 'none';
+        }
+        
+        // Fetch all students from server
+        fetch('/Student/AdminList?page=1&pageSize=1000', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the HTML to extract all student rows
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const allRows = doc.querySelectorAll('.admin-table tbody tr');
+            
+            // Clear current tbody
+            tbody.innerHTML = '';
+            
+            // Filter and add matching rows
+            let matchCount = 0;
+            allRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    tbody.appendChild(row.cloneNode(true));
+                    matchCount++;
+                }
+            });
+            
+            // Show message if no results
+            if (matchCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding: 2rem;">No students found matching "' + searchText + '"</td></tr>';
+            }
+            
+            console.log('Filtered results:', matchCount);
+        })
+        .catch(err => {
+            console.error('Error fetching students:', err);
+        });
+    }
+    
+    // Also add event listener as backup
+    setTimeout(function() {
+        const input = document.getElementById('searchInput');
+        if (input) {
+            console.log('Found input, adding listener');
+            input.addEventListener('keyup', function(e) {
+                console.log('Keyup event:', e.target.value);
+                filterStudentTable(e.target.value);
+            });
+        } else {
+            console.log('Input not found');
+        }
+    }, 100);
+</script>
 
 <style>
     /* Main Container */
@@ -265,6 +434,11 @@
         display: flex;
         gap: 0.5rem;
         flex-wrap: wrap;
+    }
+
+    .admin-action-form {
+        display: inline;
+        margin: 0;
     }
 
     .action-btn {

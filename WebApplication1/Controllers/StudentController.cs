@@ -20,9 +20,11 @@ namespace MyWebApplication.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        public IActionResult AdminList(int page = 1)
+        public IActionResult AdminList(int page = 1, int pageSize = 5)
         {
-            int pageSize = 5;
+            // Allow fetching all records when pageSize is large (for search)
+            if (pageSize > 100) pageSize = 1000;
+            
             var query = _db.Students.OrderBy(s => s.Id);
             var totalRecords = query.Count();
             var objStudentList = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
@@ -63,6 +65,14 @@ namespace MyWebApplication.Controllers
                 _db.Students.Add(obj);
                 _db.SaveChanges();
                 TempData["success"] = "Student created successfully";
+                
+                // Check if it's from admin panel, redirect to AdminList
+                if (Request.Headers.ContainsKey("Referer") && 
+                    Request.Headers["Referer"].ToString().Contains("Admin"))
+                {
+                    return RedirectToAction("AdminList");
+                }
+                
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -96,6 +106,14 @@ namespace MyWebApplication.Controllers
                 _db.Students.Update(student);
                 _db.SaveChanges();
                 TempData["success"] = "Student updated successfully";
+                
+                // Check if it's from admin panel, redirect to AdminList
+                if (Request.Headers.ContainsKey("Referer") && 
+                    Request.Headers["Referer"].ToString().Contains("Admin"))
+                {
+                    return RedirectToAction("AdminList");
+                }
+                
                 return RedirectToAction("Index");
             }
             return View(student);
@@ -124,7 +142,8 @@ namespace MyWebApplication.Controllers
             var student = await _db.Students.FindAsync(id);
             if (student == null)
             {
-                return NotFound();
+                TempData["error"] = "Student not found";
+                return RedirectToAction("AdminList");
             }
 
             try
@@ -137,12 +156,13 @@ namespace MyWebApplication.Controllers
                 
                 TempData["success"] = "Student deleted successfully";
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                TempData["error"] = "Error deleting student";
+                TempData["error"] = "Error deleting student: " + ex.Message;
             }
             
-            return RedirectToAction("Index");
+            // Always redirect to AdminList for admin panel
+            return RedirectToAction("AdminList");
         }
     }
 }

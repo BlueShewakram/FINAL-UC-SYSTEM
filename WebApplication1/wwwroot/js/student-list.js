@@ -1,148 +1,142 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
-    const table = document.querySelector('.custom-table');
-    const tbody = table ? table.querySelector('tbody') : null;
-    // support either the nav having id 'studentPagination' or the ul having id 'studentPaginationList'
-    const paginationNav = document.getElementById('studentPagination') || document.getElementById('studentPaginationList');
-
-    // Only enable client-side pagination on pages that include the studentPagination nav (Index view)
-    if (!table || !tbody || !paginationNav) {
-        // fallback: only wire up search (if present)
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                const searchText = e.target.value.toLowerCase();
-                const tableRows = document.querySelectorAll('.custom-table tbody tr');
-                tableRows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    row.style.display = text.includes(searchText) ? '' : 'none';
-                });
-            });
-        }
-        return;
-    }
-
+    const table = document.querySelector('.data-table');
+    const tbody = document.getElementById('studentTableBody');
+    const paginationNav = document.getElementById('studentPaginationList');
     const prevBtn = document.getElementById('studentPrev');
     const nextBtn = document.getElementById('studentNext');
-    const paginationList = document.getElementById('studentPaginationList');
+    
     const rowsPerPage = 5;
     let currentPage = 1;
+    let allRows = [];
+    let filteredRows = [];
 
-    function getAllRows() {
-        return Array.from(tbody.querySelectorAll('tr'));
+    function initialize() {
+        if (!tbody) return;
+        allRows = Array.from(tbody.querySelectorAll('tr.data-row'));
+        filteredRows = [...allRows];
+        renderPage();
     }
 
-    function getFilteredRows() {
-        // Determine filtered rows based on the current search input value
-        const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    function filterRows() {
+        const searchText = searchInput.value.toLowerCase().trim();
         if (!searchText) {
-            return getAllRows();
+            filteredRows = [...allRows];
+        } else {
+            filteredRows = allRows.filter(row => {
+                const text = row.textContent.toLowerCase();
+                return text.includes(searchText);
+            });
         }
-        return getAllRows().filter(r => r.textContent.toLowerCase().includes(searchText));
+        currentPage = 1;
+        renderPage();
     }
 
     function renderPage() {
-        const filtered = getFilteredRows();
-        const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+        if (!tbody || filteredRows.length === 0) {
+            if (allRows.length > 0) {
+                allRows.forEach(row => row.style.display = 'none');
+            }
+            updatePagination(0);
+            return;
+        }
+
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
         if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
 
-        // If there is 1 or fewer pages, hide the pagination entirely
-        if (paginationList) {
-            paginationList.style.display = totalPages <= 1 ? 'none' : '';
-        }
-
-        // Get rows to show on current page
         const start = (currentPage - 1) * rowsPerPage;
-        const pageRows = filtered.slice(start, start + rowsPerPage);
-        const allRows = getAllRows();
+        const end = start + rowsPerPage;
+        const pageRows = filteredRows.slice(start, end);
 
-        // Fade out all rows first
-        allRows.forEach(r => {
-            if (!pageRows.includes(r)) {
-                r.style.opacity = '0';
-                r.style.transition = 'opacity 0.2s ease';
-                setTimeout(() => {
-                    r.style.display = 'none';
-                }, 200);
-            }
+        // Hide all rows first
+        allRows.forEach(row => {
+            row.style.display = 'none';
+            row.style.opacity = '0';
         });
 
-        // Fade in page rows after brief delay
+        // Show current page rows with fade in
         setTimeout(() => {
-            pageRows.forEach(r => {
-                r.style.display = 'table-row';
-                r.style.opacity = '0';
-                r.style.transition = 'opacity 0.3s ease';
-                // Force reflow
-                r.offsetHeight;
-                r.style.opacity = '1';
+            pageRows.forEach(row => {
+                row.style.display = 'table-row';
+                row.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    row.style.opacity = '1';
+                }, 10);
             });
-        }, 250);
+        }, 50);
 
-        // Disable/enable Prev/Next buttons
-        if (prevBtn) prevBtn.disabled = currentPage <= 1;
-        if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+        updatePagination(totalPages);
+    }
 
-        // Rebuild number buttons
-        if (paginationList) {
-            // remove existing number items with marker class
-            const existing = paginationList.querySelectorAll('.student-page-number');
-            existing.forEach(n => n.remove());
+    function updatePagination(totalPages) {
+        if (!paginationNav) return;
 
-            // insert page number items before the next button's parent <li>
-            const nextLi = nextBtn ? nextBtn.closest('li') : null;
+        // Show/hide pagination
+        if (totalPages <= 1) {
+            paginationNav.style.display = 'none';
+            return;
+        } else {
+            paginationNav.style.display = 'flex';
+        }
 
-            for (let i = 1; i <= totalPages; i++) {
-                const li = document.createElement('li');
-                li.className = 'page-item student-page-number' + (i === currentPage ? ' active' : '');
+        // Update prev/next buttons
+        if (prevBtn) {
+            prevBtn.disabled = currentPage <= 1;
+        }
+        if (nextBtn) {
+            nextBtn.disabled = currentPage >= totalPages;
+        }
 
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'page-link';
-                btn.textContent = i;
-                btn.dataset.page = i;
-                btn.addEventListener('click', function() {
-                    currentPage = Number(this.dataset.page);
-                    renderPage();
-                });
+        // Remove old page number buttons
+        const oldPageBtns = paginationNav.querySelectorAll('.page-btn[data-page]');
+        oldPageBtns.forEach(btn => btn.remove());
 
-                li.appendChild(btn);
+        // Create new page number buttons
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+            btn.textContent = i;
+            btn.dataset.page = i;
+            btn.addEventListener('click', function() {
+                currentPage = parseInt(this.dataset.page);
+                renderPage();
+            });
 
-                if (nextLi && nextLi.parentNode) {
-                    nextLi.parentNode.insertBefore(li, nextLi);
-                } else if (paginationList) {
-                    paginationList.appendChild(li);
-                }
+            // Insert before next button
+            if (nextBtn) {
+                paginationNav.insertBefore(btn, nextBtn);
+            } else {
+                paginationNav.appendChild(btn);
             }
         }
     }
 
-    // Wire up Prev/Next
-    if (prevBtn) prevBtn.addEventListener('click', function() {
-        const filtered = getFilteredRows();
-        const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
-        if (currentPage > 1) {
-            currentPage--;
-            renderPage();
-        }
-    });
-
-    if (nextBtn) nextBtn.addEventListener('click', function() {
-        const filtered = getFilteredRows();
-        const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderPage();
-        }
-    });
-
-    // Wire up search: reset to page 1 and re-render when search input changes
+    // Event listeners
     if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            currentPage = 1;
-            renderPage();
+        searchInput.addEventListener('input', filterRows);
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage();
+            }
         });
     }
 
-    // Initialize: show first page
-    renderPage();
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderPage();
+            }
+        });
+    }
+
+    // Initialize
+    initialize();
 });

@@ -43,7 +43,15 @@
 
         <div class="form-group">
             <input type="submit" value="Update" class="btn btn-primary" />
-            <a asp-controller="Student" asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
+            @if (Context.Request.Headers["Referer"].ToString().Contains("Admin") || 
+                 Context.Request.Query.ContainsKey("fromAdmin"))
+            {
+                <a asp-controller="LockerRequests" asp-action="Admin" class="btn btn-secondary ms-2">Back to Admin Panel</a>
+            }
+            else
+            {
+                <a asp-controller="Student" asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
+            }
         </div>
     </div>
 </form>

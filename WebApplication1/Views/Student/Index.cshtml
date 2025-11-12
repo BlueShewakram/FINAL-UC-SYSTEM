@@ -82,7 +82,164 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/student-list.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Student list script loaded');
+            
+            const searchInput = document.getElementById('searchInput');
+            const tbody = document.getElementById('studentTableBody');
+            const paginationNav = document.getElementById('studentPaginationList');
+            const prevBtn = document.getElementById('studentPrev');
+            const nextBtn = document.getElementById('studentNext');
+            
+            console.log('Search input:', searchInput);
+            console.log('Table body:', tbody);
+            console.log('Pagination:', paginationNav);
+            
+            const rowsPerPage = 5;
+            let currentPage = 1;
+            let allRows = [];
+            let filteredRows = [];
+
+            function initialize() {
+                if (!tbody) {
+                    console.error('Table body not found');
+                    return;
+                }
+                allRows = Array.from(tbody.querySelectorAll('tr.data-row'));
+                console.log('Total rows:', allRows.length);
+                filteredRows = [...allRows];
+                renderPage();
+            }
+
+            function filterRows() {
+                const searchText = searchInput.value.toLowerCase().trim();
+                console.log('Filtering with:', searchText);
+                
+                if (!searchText) {
+                    filteredRows = [...allRows];
+                } else {
+                    filteredRows = allRows.filter(row => {
+                        const text = row.textContent.toLowerCase();
+                        return text.includes(searchText);
+                    });
+                }
+                console.log('Filtered rows:', filteredRows.length);
+                currentPage = 1;
+                renderPage();
+            }
+
+            function renderPage() {
+                if (!tbody || filteredRows.length === 0) {
+                    if (allRows.length > 0) {
+                        allRows.forEach(row => row.style.display = 'none');
+                    }
+                    updatePagination(0);
+                    return;
+                }
+
+                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const pageRows = filteredRows.slice(start, end);
+
+                console.log('Rendering page', currentPage, 'showing rows', start, 'to', end);
+
+                // Hide all rows first
+                allRows.forEach(row => {
+                    row.style.display = 'none';
+                });
+
+                // Show current page rows
+                pageRows.forEach(row => {
+                    row.style.display = 'table-row';
+                    row.style.opacity = '1';
+                });
+
+                updatePagination(totalPages);
+            }
+
+            function updatePagination(totalPages) {
+                if (!paginationNav) return;
+
+                // Show/hide pagination
+                if (totalPages <= 1) {
+                    paginationNav.style.display = 'none';
+                    return;
+                } else {
+                    paginationNav.style.display = 'flex';
+                }
+
+                // Update prev/next buttons
+                if (prevBtn) {
+                    prevBtn.disabled = currentPage <= 1;
+                }
+                if (nextBtn) {
+                    nextBtn.disabled = currentPage >= totalPages;
+                }
+
+                // Remove old page number buttons
+                const oldPageBtns = paginationNav.querySelectorAll('.page-btn[data-page]');
+                oldPageBtns.forEach(btn => btn.remove());
+
+                // Create new page number buttons
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                    btn.textContent = i;
+                    btn.dataset.page = i;
+                    btn.addEventListener('click', function() {
+                        currentPage = parseInt(this.dataset.page);
+                        renderPage();
+                    });
+
+                    // Insert before next button
+                    if (nextBtn) {
+                        paginationNav.insertBefore(btn, nextBtn);
+                    } else {
+                        paginationNav.appendChild(btn);
+                    }
+                }
+            }
+
+            // Event listeners
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    console.log('Search input changed');
+                    filterRows();
+                });
+                console.log('Search listener attached');
+            } else {
+                console.error('Search input not found');
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            // Initialize
+            initialize();
+        });
+    </script>
 }
 
 <style>

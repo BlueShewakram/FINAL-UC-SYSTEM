@@ -174,8 +174,9 @@
                 fetch(action, { method, credentials: 'same-origin', body: formData, redirect: 'follow' })
                     .then(r => {
                         if (!r.ok) throw new Error(r.statusText || r.status);
-                        // After any action (Approve/Reject/Delete), reload the current panel
-                        if (action.includes('Delete') || action.includes('Approve') || action.includes('Reject')) {
+                        // After any action (Approve/Reject/Delete from any controller), reload the current panel
+                        const actionLower = action.toLowerCase();
+                        if (actionLower.includes('delete') || actionLower.includes('approve') || actionLower.includes('reject')) {
                             // Reload the current panel
                             loadPanel(panels[idx]);
                         } else {
@@ -214,7 +215,21 @@
                     container.classList.remove('fade-out');
                     container.classList.add('fade-in');
                     // remove fade-in class after animation so it can be reused
-                    setTimeout(() => container.classList.remove('fade-in'), 350);
+                    setTimeout(() => {
+                        container.classList.remove('fade-in');
+                        
+                        // Re-execute any inline scripts in the loaded content
+                        const scripts = container.querySelectorAll('script');
+                        scripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            if (oldScript.src) {
+                                newScript.src = oldScript.src;
+                            } else {
+                                newScript.textContent = oldScript.textContent;
+                            }
+                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                        });
+                    }, 350);
                 }, 300);
             }
 
