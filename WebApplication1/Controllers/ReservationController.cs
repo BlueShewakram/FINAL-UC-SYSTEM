@@ -84,11 +84,14 @@ namespace WebApplication1.Controllers
         
         // Admin list with approve/delete actions
         [Authorize(Roles = "Admin")]
-        public IActionResult AdminList(int page = 1)
+        public IActionResult AdminList(int page = 1, int pageSize = 5)
         {
             // ensure the status columns exist before querying
             EnsureReservationStatusColumns();
-            int pageSize = 5;
+            
+            // Allow larger pageSize for search functionality (max 1000)
+            if (pageSize > 1000) pageSize = 1000;
+            
             var query = _db.Reservations.OrderBy(r => r.Id);
             var totalRecords = query.Count();
             var reservations = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
@@ -112,27 +115,24 @@ namespace WebApplication1.Controllers
             var item = _db.Reservations.Find(id);
             if (item == null) 
             {
-                TempData["error"] = "Reservation not found";
-                return RedirectToAction("AdminList");
+                return NotFound();
             }
             
             item.Approved = approved;
             item.ApprovalDate = DateTime.UtcNow;
             item.Approver = User?.Identity?.Name ?? "Admin";
             
-            try
-            {
-                _db.Reservations.Update(item);
-                _db.SaveChanges();
-                
-                TempData["success"] = approved ? "Reservation approved successfully" : "Reservation rejected successfully";
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = "Error updating reservation: " + ex.Message;
-            }
+            _db.Reservations.Update(item);
+            _db.SaveChanges();
             
-            return RedirectToAction("AdminList");
+            // Return updated partial view
+            var query = _db.Reservations.OrderBy(r => r.Id);
+            var list = query.Take(5).ToList();
+            
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)query.Count() / 5.0);
+            
+            return PartialView("AdminList", list);
         }
 
         [HttpPost]
@@ -143,27 +143,24 @@ namespace WebApplication1.Controllers
             var item = _db.Reservations.Find(id);
             if (item == null) 
             {
-                TempData["error"] = "Reservation not found";
-                return RedirectToAction("AdminList");
+                return NotFound();
             }
             
             item.Approved = false;
             item.ApprovalDate = DateTime.UtcNow;
             item.Approver = User?.Identity?.Name ?? "Admin";
             
-            try
-            {
-                _db.Reservations.Update(item);
-                _db.SaveChanges();
-                
-                TempData["success"] = "Reservation rejected successfully";
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = "Error rejecting reservation: " + ex.Message;
-            }
+            _db.Reservations.Update(item);
+            _db.SaveChanges();
             
-            return RedirectToAction("AdminList");
+            // Return updated partial view
+            var query = _db.Reservations.OrderBy(r => r.Id);
+            var list = query.Take(5).ToList();
+            
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)query.Count() / 5.0);
+            
+            return PartialView("AdminList", list);
         }
 
         [HttpPost]
@@ -174,23 +171,20 @@ namespace WebApplication1.Controllers
             var item = _db.Reservations.Find(id);
             if (item == null) 
             {
-                TempData["error"] = "Reservation not found";
-                return RedirectToAction("AdminList");
+                return NotFound();
             }
             
-            try
-            {
-                _db.Reservations.Remove(item);
-                _db.SaveChanges();
-                
-                TempData["success"] = "Reservation deleted successfully";
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = "Error deleting reservation: " + ex.Message;
-            }
+            _db.Reservations.Remove(item);
+            _db.SaveChanges();
             
-            return RedirectToAction("AdminList");
+            // Return updated partial view
+            var query = _db.Reservations.OrderBy(r => r.Id);
+            var list = query.Take(5).ToList();
+            
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)query.Count() / 5.0);
+            
+            return PartialView("AdminList", list);
         }
         
         // One-time action to reset all existing reservations to pending

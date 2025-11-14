@@ -133,9 +133,11 @@ namespace WebApplication1.Controllers
 
     // Admin list page with pagination
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
-    public IActionResult Admin(int page = 1)
+    public IActionResult Admin(int page = 1, int pageSize = 5)
         {
-            int pageSize = 5;
+            // Allow larger pageSize for search functionality (max 1000)
+            if (pageSize > 1000) pageSize = 1000;
+            
             var query = _context.LockerRequests.OrderByDescending(x => x.CreatedAt);
             var totalRecords = query.Count();
             var list = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
@@ -162,21 +164,19 @@ namespace WebApplication1.Controllers
             if (req == null) return NotFound();
 
             req.Approved = approve;
-            req.Approver = "Shewakram";
+            req.Approver = "Admin";
             req.ApprovalDate = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
-            // If this was an AJAX request, return the admin partial so the panel can update in-place
-            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                int pageSize = 5;
-                var query = _context.LockerRequests.OrderByDescending(x => x.CreatedAt);
-                var list = query.Take(pageSize).ToList();
-                return PartialView("Admin", list);
-            }
-
-            return RedirectToAction(nameof(Admin));
+            // Always return partial view for AJAX to update UI
+            var query = _context.LockerRequests.OrderByDescending(x => x.CreatedAt);
+            var list = query.Take(5).ToList();
+            
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)query.Count() / 5.0);
+            
+            return PartialView("Admin", list);
         }
 
         // Delete action
@@ -201,15 +201,14 @@ namespace WebApplication1.Controllers
             _context.LockerRequests.Remove(request);
             await _context.SaveChangesAsync();
 
-            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                int pageSize = 5;
-                var query = _context.LockerRequests.OrderByDescending(x => x.CreatedAt);
-                var list = query.Take(pageSize).ToList();
-                return PartialView("Admin", list);
-            }
-
-            return RedirectToAction(nameof(Admin));
+            // Always return partial view for AJAX to update UI
+            var query = _context.LockerRequests.OrderByDescending(x => x.CreatedAt);
+            var list = query.Take(5).ToList();
+            
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)query.Count() / 5.0);
+            
+            return PartialView("Admin", list);
         }
     }
 }

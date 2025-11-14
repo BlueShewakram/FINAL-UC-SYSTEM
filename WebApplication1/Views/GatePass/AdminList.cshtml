@@ -47,6 +47,45 @@
         font-weight: 700;
     }
 
+    /* Search Container */
+    .search-container {
+        background: white;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1.2rem;
+        color: #1e3c72;
+        font-size: 1.1rem;
+        z-index: 1;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.9rem 1rem 0.9rem 3rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #1e3c72;
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+    }
+
     /* Navigation Buttons */
     .nav-buttons {
         display: flex;
@@ -308,6 +347,16 @@
         </div>
     </div>
 
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchGatePassInput" class="search-input" 
+                   placeholder="Search by student ID, name, course, plate number..." 
+                   oninput="filterGatePassTable(this.value)" />
+        </div>
+    </div>
+
     <!-- Table -->
     <div class="data-table-wrapper">
         <table class="data-table">
@@ -401,7 +450,7 @@
                 @if (ViewBag.CurrentPage > 1)
                 {
                     <li class="page-item">
-                        <a class="page-link" href="@Url.Action("AdminList", "GatePass", new { page = ViewBag.CurrentPage - 1 })">
+                        <a class="page-link admin-page-link" href="@Url.Action("AdminList", "GatePass", new { page = ViewBag.CurrentPage - 1 })">
                             <i class="fas fa-chevron-left"></i>
                         </a>
                     </li>
@@ -409,13 +458,13 @@
                 @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
                     <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("AdminList", "GatePass", new { page = i })">@i</a>
+                        <a class="page-link admin-page-link" href="@Url.Action("AdminList", "GatePass", new { page = i })">@i</a>
                     </li>
                 }
                 @if (ViewBag.CurrentPage < ViewBag.TotalPages)
                 {
                     <li class="page-item">
-                        <a class="page-link" href="@Url.Action("AdminList", "GatePass", new { page = ViewBag.CurrentPage + 1 })">
+                        <a class="page-link admin-page-link" href="@Url.Action("AdminList", "GatePass", new { page = ViewBag.CurrentPage + 1 })">
                             <i class="fas fa-chevron-right"></i>
                         </a>
                     </li>
@@ -424,3 +473,82 @@
         </nav>
     </div>
 </div>
+
+<script>
+    // Define the search filter function globally for gate pass
+    function filterGatePassTable(searchText) {
+        console.log('Filter gate pass called with:', searchText);
+        searchText = searchText.toLowerCase().trim();
+        
+        if (!searchText) {
+            // If no search text, show pagination and current page only
+            showGatePassPaginationView();
+            return;
+        }
+        
+        // When searching, fetch all gate passes and display filtered results
+        fetchAllGatePassesAndFilter(searchText);
+    }
+    
+    function showGatePassPaginationView() {
+        const tableRows = document.querySelectorAll('.data-table tbody tr');
+        const pagination = document.querySelector('.pagination-wrapper');
+        
+        // Show all rows (server already paginated them)
+        tableRows.forEach(row => {
+            row.style.display = '';
+        });
+        
+        // Show pagination
+        if (pagination) {
+            pagination.style.display = '';
+        }
+    }
+    
+    function fetchAllGatePassesAndFilter(searchText) {
+        const tbody = document.querySelector('.data-table tbody');
+        const pagination = document.querySelector('.pagination-wrapper');
+        
+        if (!tbody) return;
+        
+        // Hide pagination during search
+        if (pagination) {
+            pagination.style.display = 'none';
+        }
+        
+        // Fetch all gate passes from server
+        fetch('/GatePass/AdminList?page=1&pageSize=1000', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the HTML to extract all gate pass rows
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const allRows = doc.querySelectorAll('.data-table tbody tr');
+            
+            // Clear current tbody
+            tbody.innerHTML = '';
+            
+            // Filter and add matching rows
+            let matchCount = 0;
+            allRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    tbody.appendChild(row.cloneNode(true));
+                    matchCount++;
+                }
+            });
+            
+            // Show message if no results
+            if (matchCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center" style="padding: 2rem;">No gate pass requests found matching "' + searchText + '"</td></tr>';
+            }
+            
+            console.log('Filtered gate pass results:', matchCount);
+        })
+        .catch(err => {
+            console.error('Error fetching gate passes:', err);
+        });
+    }
+</script>

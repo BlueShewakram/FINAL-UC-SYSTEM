@@ -223,7 +223,7 @@
         </div>
 
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="Search by organization, activity, speaker, or date..." />
+            <input type="text" id="searchReservationInput" class="search-input" placeholder="Search by organization, activity, speaker, or date..." oninput="filterReservationTable(this.value)" />
         </div>
 
         <div class="table-responsive">
@@ -323,3 +323,85 @@
     </nav>
 
 </div>
+
+<script>
+    // Track all reservations data for client-side search
+    var allReservationsData = [];
+    
+    // Define the search filter function globally so oninput can call it
+    function filterReservationTable(searchText) {
+        console.log('Filter called with:', searchText);
+        searchText = searchText.toLowerCase().trim();
+        
+        if (!searchText) {
+            // If no search text, show pagination and current page only
+            showPaginationView();
+            return;
+        }
+        
+        // When searching, fetch all reservations and display filtered results
+        fetchAllReservationsAndFilter(searchText);
+    }
+    
+    function showPaginationView() {
+        const tableRows = document.querySelectorAll('.reservation-table tbody tr');
+        const pagination = document.querySelector('nav[aria-label="Page navigation"]');
+        
+        // Show all rows (server already paginated them)
+        tableRows.forEach(row => {
+            row.style.display = '';
+        });
+        
+        // Show pagination
+        if (pagination) {
+            pagination.style.display = '';
+        }
+    }
+    
+    function fetchAllReservationsAndFilter(searchText) {
+        const tbody = document.querySelector('.reservation-table tbody');
+        const pagination = document.querySelector('nav[aria-label="Page navigation"]');
+        
+        if (!tbody) return;
+        
+        // Hide pagination during search
+        if (pagination) {
+            pagination.style.display = 'none';
+        }
+        
+        // Fetch all reservations from server
+        fetch('/Reservation/AdminList?page=1&pageSize=1000', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the HTML to extract all reservation rows
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const allRows = doc.querySelectorAll('.reservation-table tbody tr');
+            
+            // Clear current tbody
+            tbody.innerHTML = '';
+            
+            // Filter and add matching rows
+            let matchCount = 0;
+            allRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    tbody.appendChild(row.cloneNode(true));
+                    matchCount++;
+                }
+            });
+            
+            // Show message if no results
+            if (matchCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="text-center" style="padding: 2rem;">No reservations found matching "' + searchText + '"</td></tr>';
+            }
+            
+            console.log('Filtered results:', matchCount);
+        })
+        .catch(err => {
+            console.error('Error fetching reservations:', err);
+        });
+    }
+</script>

@@ -26,9 +26,11 @@ namespace WebApplication1.Controllers
         }
     // Admin list with pagination
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
-    public IActionResult AdminList(int page = 1)
+    public IActionResult AdminList(int page = 1, int pageSize = 5)
         {
-            int pageSize = 5;
+            // Allow larger pageSize for search functionality (max 1000)
+            if (pageSize > 1000) pageSize = 1000;
+            
             var query = _db.GatePasses.OrderByDescending(g => g.DateSubmitted);
             var total = query.Count();
             var list = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
@@ -51,16 +53,18 @@ namespace WebApplication1.Controllers
         {
             var gp = _db.GatePasses.Find(id);
             if (gp == null) return NotFound();
+            
             gp.Status = approve ? "Approved" : "Rejected";
             _db.SaveChanges();
-            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                int pageSize = 5;
-                var query = _db.GatePasses.OrderByDescending(g => g.DateSubmitted);
-                var list = query.Take(pageSize).ToList();
-                return PartialView("AdminList", list);
-            }
-            return RedirectToAction("AdminList");
+            
+            // Always return updated partial view
+            var query = _db.GatePasses.OrderByDescending(g => g.DateSubmitted);
+            var list = query.Take(5).ToList();
+            
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)query.Count() / 5.0);
+            
+            return PartialView("AdminList", list);
         }
 
     [HttpPost]
@@ -85,15 +89,15 @@ namespace WebApplication1.Controllers
 
             _db.GatePasses.Remove(gp);
             _db.SaveChanges();
-            if (Request.Headers.ContainsKey("X-Requested-With") && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                int pageSize = 5;
-                var query = _db.GatePasses.OrderByDescending(g => g.DateSubmitted);
-                var list = query.Take(pageSize).ToList();
-                return PartialView("AdminList", list);
-            }
-
-            return RedirectToAction("AdminList");
+            
+            // Always return updated partial view
+            var query = _db.GatePasses.OrderByDescending(g => g.DateSubmitted);
+            var list = query.Take(5).ToList();
+            
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)query.Count() / 5.0);
+            
+            return PartialView("AdminList", list);
         }
         public IActionResult Create()
         {

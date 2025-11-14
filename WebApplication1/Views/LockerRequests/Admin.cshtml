@@ -24,6 +24,14 @@
                     <i class="fas fa-key"></i> Admin - Locker Requests
                 </h2>
             </div>
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchLockerInput" class="form-control search-input" 
+                           placeholder="Search by name, ID, semester, or contact..." 
+                           oninput="filterLockerTable(this.value)" />
+                </div>
+            </div>
             <div class="table-card">
                 <div class="table-responsive">
                     <table class="admin-table">
@@ -129,6 +137,83 @@
 
 @section Scripts {
     <script>
+        // Define the search filter function globally for locker requests
+        function filterLockerTable(searchText) {
+            console.log('Filter locker called with:', searchText);
+            searchText = searchText.toLowerCase().trim();
+            
+            if (!searchText) {
+                // If no search text, show pagination and current page only
+                showLockerPaginationView();
+                return;
+            }
+            
+            // When searching, fetch all locker requests and display filtered results
+            fetchAllLockersAndFilter(searchText);
+        }
+        
+        function showLockerPaginationView() {
+            const tableRows = document.querySelectorAll('.admin-table tbody tr');
+            const pagination = document.querySelector('nav[aria-label="Page navigation"]');
+            
+            // Show all rows (server already paginated them)
+            tableRows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            // Show pagination
+            if (pagination) {
+                pagination.style.display = '';
+            }
+        }
+        
+        function fetchAllLockersAndFilter(searchText) {
+            const tbody = document.querySelector('.admin-table tbody');
+            const pagination = document.querySelector('nav[aria-label="Page navigation"]');
+            
+            if (!tbody) return;
+            
+            // Hide pagination during search
+            if (pagination) {
+                pagination.style.display = 'none';
+            }
+            
+            // Fetch all locker requests from server
+            fetch('/LockerRequests/Admin?page=1&pageSize=1000', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML to extract all locker request rows
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const allRows = doc.querySelectorAll('.admin-table tbody tr');
+                
+                // Clear current tbody
+                tbody.innerHTML = '';
+                
+                // Filter and add matching rows
+                let matchCount = 0;
+                allRows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchText)) {
+                        tbody.appendChild(row.cloneNode(true));
+                        matchCount++;
+                    }
+                });
+                
+                // Show message if no results
+                if (matchCount === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 2rem;">No locker requests found matching "' + searchText + '"</td></tr>';
+                }
+                
+                console.log('Filtered locker results:', matchCount);
+            })
+            .catch(err => {
+                console.error('Error fetching locker requests:', err);
+            });
+        }
+
         (function(){
             const prevBtn = document.getElementById('prevPanelBtn');
             const nextBtn = document.getElementById('nextPanelBtn');
@@ -171,22 +256,27 @@
                 const method = (form.getAttribute('method') || 'POST').toUpperCase();
                 const formData = new FormData(form);
 
-                fetch(action, { method, credentials: 'same-origin', body: formData, redirect: 'follow' })
+                // Show loading state
+                container.style.opacity = '0.6';
+
+                fetch(action, { 
+                    method, 
+                    credentials: 'same-origin', 
+                    body: formData, 
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
                     .then(r => {
                         if (!r.ok) throw new Error(r.statusText || r.status);
-                        // After any action (Approve/Reject/Delete from any controller), reload the current panel
-                        const actionLower = action.toLowerCase();
-                        if (actionLower.includes('delete') || actionLower.includes('approve') || actionLower.includes('reject')) {
-                            // Reload the current panel
-                            loadPanel(panels[idx]);
-                        } else {
-                            return r.text();
-                        }
+                        return r.text();
                     })
                     .then(html => {
-                        if (html) setPanelHtml(html);
+                        // Display the returned HTML immediately
+                        setPanelHtml(html);
                     })
-                    .catch(err => alert('Action failed: ' + err.message));
+                    .catch(err => {
+                        container.style.opacity = '1';
+                        alert('Action failed: ' + err.message);
+                    });
             });
 
             let idx = 0; // currently showing locker requests (index 0)
@@ -194,6 +284,7 @@
             function setPanelHtml(html){
                 // fade out
                 container.classList.add('fade-out');
+                container.style.opacity = '0.6';
                 setTimeout(() => {
                     try {
                         // Parse the returned HTML and try to extract only the inner admin panel
@@ -214,6 +305,7 @@
 
                     container.classList.remove('fade-out');
                     container.classList.add('fade-in');
+                    container.style.opacity = '1';
                     // remove fade-in class after animation so it can be reused
                     setTimeout(() => {
                         container.classList.remove('fade-in');
@@ -335,6 +427,43 @@
         padding: 1.5rem 2rem;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-bottom: 3px solid #764ba2;
+    }
+
+    /* Search Container */
+    .search-container {
+        padding: 1.5rem 2rem;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1.2rem;
+        color: #667eea;
+        font-size: 1.1rem;
+        z-index: 1;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.9rem 1rem 0.9rem 3rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .admin-title {

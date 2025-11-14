@@ -46,7 +46,7 @@ namespace MyWebApplication.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Student obj)
+        public IActionResult Create(Student obj, string? fromAdmin)
         {
             // Debug: Check what's being received
             if (!ModelState.IsValid)
@@ -66,11 +66,12 @@ namespace MyWebApplication.Controllers
                 _db.SaveChanges();
                 TempData["success"] = "Student created successfully";
                 
-                // Check if it's from admin panel, redirect to AdminList
-                if (Request.Headers.ContainsKey("Referer") && 
-                    Request.Headers["Referer"].ToString().Contains("Admin"))
+                // If fromAdmin parameter exists, redirect to Admin panel wrapper
+                if (!string.IsNullOrEmpty(fromAdmin) || 
+                    (Request.Headers.ContainsKey("Referer") && 
+                     Request.Headers["Referer"].ToString().Contains("Admin")))
                 {
-                    return RedirectToAction("AdminList");
+                    return RedirectToAction("Admin", "LockerRequests");
                 }
                 
                 return RedirectToAction("Index");
@@ -107,11 +108,11 @@ namespace MyWebApplication.Controllers
                 _db.SaveChanges();
                 TempData["success"] = "Student updated successfully";
                 
-                // Check if it's from admin panel, redirect to AdminList
+                // Check if it's from admin panel, redirect to Admin panel wrapper
                 if (Request.Headers.ContainsKey("Referer") && 
                     Request.Headers["Referer"].ToString().Contains("Admin"))
                 {
-                    return RedirectToAction("AdminList");
+                    return RedirectToAction("Admin", "LockerRequests");
                 }
                 
                 return RedirectToAction("Index");
@@ -139,30 +140,38 @@ namespace MyWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int? id)
         {
-            var student = await _db.Students.FindAsync(id);
-            if (student == null)
-            {
-                TempData["error"] = "Student not found";
-                return RedirectToAction("AdminList");
-            }
-
             try
             {
+                if (id == null)
+                {
+                    return BadRequest("Student ID is required");
+                }
+
+                var student = await _db.Students.FindAsync(id);
+                if (student == null)
+                {
+                    return NotFound();
+                }
+
                 _db.Students.Remove(student);
                 await _db.SaveChangesAsync();
                 
-                // Resequence the IDs to maintain order
-                await _db.ResequenceStudentIds();
+                // Return updated partial view
+                int pageSize = 5;
+                var students = await _db.Students.OrderBy(s => s.Id).ToListAsync();
+                var totalRecords = students.Count;
+                var list = students.Take(pageSize).ToList();
                 
-                TempData["success"] = "Student deleted successfully";
+                ViewBag.CurrentPage = 1;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+                
+                return PartialView("AdminList", list);
             }
             catch (Exception ex)
             {
-                TempData["error"] = "Error deleting student: " + ex.Message;
+                // Return error details for debugging
+                return Content($"Error: {ex.Message}\nStack: {ex.StackTrace}", "text/plain");
             }
-            
-            // Always redirect to AdminList for admin panel
-            return RedirectToAction("AdminList");
         }
     }
 }
